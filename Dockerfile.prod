@@ -1,15 +1,8 @@
 # Production image: PHP-FPM + Nginx + built Vue (admin + cabinet)
 # Coolify / docker compose: expose port 80, healthcheck GET /health
-
-FROM node:20-bookworm-slim AS frontend
-WORKDIR /build
-RUN mkdir -p public/admin public/cabinet
-COPY frontend/package.json frontend/package-lock.json frontend/
-WORKDIR /build/frontend
-RUN npm ci --ignore-scripts
-COPY frontend/ ./
-RUN npm run build-only \
-    && npm run cabinet-build
+#
+# Build order is intentionally serial (php-base -> frontend -> vendor -> app)
+# to avoid OOM on small VPS during parallel gcc + npm builds.
 
 FROM php:8.3-fpm-bookworm AS php-base
 
@@ -19,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libicu-dev \
     libzip-dev \
-    && docker-php-ext-install -j$(nproc) \
+    && docker-php-ext-install -j1 \
         pdo_pgsql \
         intl \
         bcmath \
@@ -29,6 +22,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-enable redis \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Marker stage: forces frontend build after PHP extensions (reduces peak RAM).
+FROM php-base AS php-base-ready
+RUN true
+
+FROM node:20-bookworm-slim AS frontend
+
+COPY --from=php-base-ready /usr/local/bin/php /tmp/.php-base-ready
+
+WORKDIR /build
+RUN mkdir -p public/admin public/cabinet
+COPY frontend/package.json frontend/package-lock.json frontend/
+WORKDIR /build/frontend
+ENV NODE_OPTIONS=--max-old-space-size=768
+RUN npm ci --ignore-scripts
+COPY frontend/ ./
+RUN npm run build-only \
+    && npm run cabinet-build
 
 FROM php-base AS vendor
 
@@ -67,8 +78,6 @@ COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
-
-RUN php artisan package:discover --ansi || true
 
 EXPOSE 80
 

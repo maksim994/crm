@@ -10,6 +10,8 @@
 
 ## 2. Переменные окружения (обязательные)
 
+**В Coolify:** для `APP_ENV`, `APP_DEBUG`, `APP_KEY`, `DB_*`, `REDIS_*` включите **Runtime only** (не Build time). Иначе сборка может падать или тянуть prod-настройки в build.
+
 | Переменная | Пример | Комментарий |
 |------------|--------|-------------|
 | `APP_KEY` | `base64:...` | `php artisan key:generate --show` локально |
@@ -100,6 +102,8 @@ curl -sf http://localhost:8080/health
 
 ## 9. Чеклист staging
 
+- [ ] Env-переменные **Runtime only** (см. §2)
+- [ ] На сервере ≥ **2 GB RAM** для первой сборки (gcc + npm)
 - [ ] `/health` → 200
 - [ ] `/admin/` открывается, логин админа
 - [ ] `/cabinet/` открывается
