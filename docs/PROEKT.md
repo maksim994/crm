@@ -37,6 +37,7 @@ SaaS-платформа для digital-агентства:
 |--------|---------|
 | Стек | Laravel 11 + PostgreSQL + Redis + Docker |
 | Dev URL | `http://localhost` (порты в compose) |
+| Prod URL | `https://crm.mv-deploy.ru` (Coolify) |
 | Scope первой волны | **Всё из MVP ТЗ** (админка, ingestion, ЛК, интеграции) |
 | Тестовые данные | см. раздел 8 |
 | Legacy API wbooster.ru | **Не поддерживать** |
