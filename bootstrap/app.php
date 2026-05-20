@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Support\Facades\Route::middleware('api')
                 ->get('/health', \App\Http\Controllers\HealthController::class);
 
+            \Illuminate\Support\Facades\Route::middleware('api')
+                ->get('/health/ready', \App\Http\Controllers\ReadyHealthController::class);
+
             \Illuminate\Support\Facades\Route::middleware('web')
                 ->get('/health/web-stack', \App\Http\Controllers\WebStackHealthController::class);
 

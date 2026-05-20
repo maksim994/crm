@@ -13,6 +13,17 @@ class HealthTest extends TestCase
         $response->assertOk();
         $response->assertJsonStructure([
             'status',
+            'checks' => ['app', 'database', 'redis', 'session'],
+        ]);
+    }
+
+    public function test_ready_health_endpoint_returns_ok(): void
+    {
+        $response = $this->get('/health/ready');
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'status',
             'checks' => ['app', 'database', 'redis', 'session', 'session_start', 'crypto', 'session_driver'],
         ]);
     }

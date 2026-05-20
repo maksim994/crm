@@ -24,7 +24,7 @@ fi
 php artisan config:clear
 php artisan config:cache
 
-if compgen -G "resources/views/*.blade.php" > /dev/null; then
+if ls resources/views/*.blade.php >/dev/null 2>&1; then
     php artisan view:cache
 fi
 

@@ -10,6 +10,28 @@ class HealthController extends Controller
 {
     public function __invoke(): JsonResponse
     {
+        return $this->liveResponse();
+    }
+
+    public function liveResponse(): JsonResponse
+    {
+        $checks = [
+            'app' => 'ok',
+            'database' => $this->checkDatabase(),
+            'redis' => $this->checkRedis(),
+            'session' => $this->checkSessionStorage(),
+        ];
+
+        $healthy = ! in_array('error', $checks, true);
+
+        return response()->json([
+            'status' => $healthy ? 'ok' : 'degraded',
+            'checks' => $checks,
+        ], $healthy ? 200 : 503);
+    }
+
+    public function readyResponse(): JsonResponse
+    {
         $checks = [
             'app' => 'ok',
             'database' => $this->checkDatabase(),
