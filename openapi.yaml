@@ -1,0 +1,434 @@
+openapi: 3.1.0
+info:
+  title: WBooster Lead Ingestion API
+  description: |
+    API приёма лидов для платформы сквозной аналитики.
+
+    Лид всегда привязывается к **сайту** по токену (`token`), а не к заказчику напрямую.
+
+    См. [TZ-skvoznaya-analitika-i-edinyiy-potok-lidov.md](./TZ-skvoznaya-analitika-i-edinyiy-potok-lidov.md).
+
+    **Аутентификация:** токен сайта передаётся одним из способов:
+    - поле `token` в теле JSON (`POST /api/v1/leads`);
+    - query-параметр `token` или заголовок `X-Site-Token` (webhook коллтрекинга).
+
+    **Безопасность:** не размещайте токен в публичном JavaScript на сайте — используйте серверный прокси.
+  version: 1.0.0
+  contact:
+    name: WBooster
+
+servers:
+  - url: https://api.example.com
+    description: Production (заменить на фактический хост)
+  - url: https://staging-api.example.com
+    description: Staging
+
+tags:
+  - name: Leads
+    description: Приём и создание лидов
+  - name: Health
+    description: Служебные endpoint
+
+paths:
+  /api/v1/leads:
+    post:
+      tags: [Leads]
+      operationId: createLead
+      summary: Создать лид (форма, почта, универсальный)
+      description: |
+        Основной endpoint для заявок с сайта (Tilda и др.) и унифицированного приёма.
+
+        После успешного ответа клиентская форма может передать `id` в Яндекс Метрику:
+        `yaCounter.params({ wbooster: id })`.
+
+        Rate limit: **60 запросов/мин** на токен.
+      security:
+        - SiteTokenHeader: []
+        - SiteTokenBody: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadRequest'
+            examples:
+              form:
+                summary: Заявка с формы
+                value:
+                  token: "site_secret_token"
+                  channel: form
+                  phone: "+79001234567"
+                  name: "Иван"
+                  description: "Связаться с нами в футере"
+                  page_url: "https://ruflex-pro.ru/page"
+                  metrika_client_id: "17791064241773632"
+                  utm_source: yandex-tovarnaya
+                  utm_medium: cpc
+                  utm_campaign: "cid|707701012|search"
+                  utm_term: "---autotargeting"
+                  utm_content: "gid|5723995001|aid|17629802328"
+                  utm_campaign_first: cid
+                  ip: "128.204.75.100"
+              email:
+                summary: Заявка с почты (после парсинга inbound)
+                value:
+                  token: "site_secret_token"
+                  channel: email
+                  email: "client@example.com"
+                  description: "Заявка с почты"
+      responses:
+        '201':
+          description: Лид успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCreatedResponse'
+              example:
+                id: "286818"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/SiteInactive'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/v1/leads/call:
+    post:
+      tags: [Leads]
+      operationId: createLeadFromCall
+      summary: Webhook коллтрекинга (звонок)
+      description: |
+        Приём события звонка от коллтрекинга (например, [Callibri](https://callibri.ru/)).
+
+        Токен сайта — в query `token` или заголовке `X-Site-Token`.
+
+        Тело запроса может быть в формате провайдера; сервер нормализует данные
+        в модель `Lead` с `channel: call`.
+
+        Рекомендуемый URL в админке:
+        `https://{host}/api/v1/leads/call?token={site_token}`
+      security:
+        - SiteTokenQuery: []
+        - SiteTokenHeader: []
+      parameters:
+        - $ref: '#/components/parameters/SiteTokenQuery'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CreateLeadCallRequest'
+                - $ref: '#/components/schemas/CallibriWebhookPayload'
+            examples:
+              normalized:
+                summary: Нормализованный payload
+                value:
+                  phone: "+79001234567"
+                  created_at: "2026-05-18T14:30:00+03:00"
+                  utm_source: yandex-tovarnaya
+                  utm_campaign: "cid|707701012|search"
+                  call_recording_url: "https://provider.example/record/abc"
+                  call_duration_sec: 120
+              callibri:
+                summary: Пример полей Callibri (уточнить по документации)
+                value:
+                  caller_phone: "+79001234567"
+                  call_time: "2026-05-18T14:30:00+03:00"
+                  campaign: "cid|707701012|search"
+                  record_url: "https://provider.example/record/abc"
+                  duration: 120
+      responses:
+        '201':
+          description: Лид (звонок) создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/SiteInactive'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /health:
+    get:
+      tags: [Health]
+      operationId: healthCheck
+      summary: Проверка доступности API
+      security: []
+      responses:
+        '200':
+          description: Сервис доступен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+components:
+  securitySchemes:
+    SiteTokenHeader:
+      type: apiKey
+      in: header
+      name: X-Site-Token
+      description: Токен сайта из админ-панели
+    SiteTokenQuery:
+      type: apiKey
+      in: query
+      name: token
+      description: Токен сайта (для webhook-провайдеров)
+    SiteTokenBody:
+      type: apiKey
+      in: query
+      name: token
+      description: |
+        Для POST /api/v1/leads токен передаётся в теле JSON (поле `token`).
+        Схема apiKey в OpenAPI не описывает body; фактическая проверка — по полю `token` в CreateLeadRequest.
+
+  parameters:
+    SiteTokenQuery:
+      name: token
+      in: query
+      required: false
+      description: Токен сайта (альтернатива заголовку X-Site-Token)
+      schema:
+        type: string
+        minLength: 16
+
+  schemas:
+    LeadChannel:
+      type: string
+      enum: [form, call, email]
+      description: Канал поступления лида
+
+    CreateLeadRequest:
+      type: object
+      required:
+        - token
+        - channel
+      properties:
+        token:
+          type: string
+          minLength: 16
+          description: Секретный токен сайта из админ-панели
+          writeOnly: true
+        channel:
+          $ref: '#/components/schemas/LeadChannel'
+        phone:
+          type: string
+          description: Телефон (E.164 или локальный формат)
+          example: "+79001234567"
+        email:
+          type: string
+          format: email
+          description: Email контакта
+        name:
+          type: string
+          description: Имя / ФИО контакта
+          example: "Иван"
+        description:
+          type: string
+          description: Текст кнопки или назначение формы (form_description)
+          example: "Связаться с нами в футере"
+        page_url:
+          type: string
+          format: uri
+          description: URL страницы отправки формы
+        metrika_client_id:
+          type: string
+          description: Client ID Яндекс Метрики (строка, без потери точности)
+          example: "17791064241773632"
+        utm_source:
+          type: string
+        utm_medium:
+          type: string
+        utm_campaign:
+          type: string
+        utm_term:
+          type: string
+        utm_content:
+          type: string
+        utm_campaign_first:
+          type: string
+          description: Первое касание UTM campaign (из cookie, 90 дней)
+        ip:
+          type: string
+          format: ipv4
+          description: IP посетителя (только для админки, не показывать в ЛК)
+        city:
+          type: string
+        product_request:
+          type: string
+        sku_count:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          description: Время события (если передано источником; иначе серверное)
+      oneOf:
+        - required: [phone]
+        - required: [email]
+      description: |
+        Обязательно: `token`, `channel` и хотя бы одно из `phone`, `email`.
+
+    CreateLeadCallRequest:
+      type: object
+      required:
+        - phone
+      properties:
+        phone:
+          type: string
+          description: Номер звонящего
+        created_at:
+          type: string
+          format: date-time
+        utm_source:
+          type: string
+        utm_medium:
+          type: string
+        utm_campaign:
+          type: string
+        utm_term:
+          type: string
+        utm_content:
+          type: string
+        call_recording_url:
+          type: string
+          format: uri
+          description: URL записи разговора
+        call_duration_sec:
+          type: integer
+          minimum: 0
+          description: Длительность звонка в секундах
+        metrika_client_id:
+          type: string
+
+    CallibriWebhookPayload:
+      type: object
+      description: |
+        Примерная схема webhook Callibri. Поля и имена уточнить по документации провайдера при интеграции.
+        Сервер маппит в CreateLeadCallRequest.
+      additionalProperties: true
+      properties:
+        caller_phone:
+          type: string
+        call_time:
+          type: string
+          format: date-time
+        campaign:
+          type: string
+        record_url:
+          type: string
+          format: uri
+        duration:
+          type: integer
+
+    LeadCreatedResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Внутренний идентификатор лида
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        is_duplicate:
+          type: boolean
+          description: |
+            true, если за 30 дней на этом сайте уже был лид с тем же phone/email
+          default: false
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Код или краткое описание ошибки
+          example: invalid_token
+        message:
+          type: string
+          description: Человекочитаемое сообщение
+          example: Site token is invalid or revoked
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            error:
+              example: validation_error
+            details:
+              example:
+                - field: phone
+                  issue: required_when_email_empty
+
+  responses:
+    Unauthorized:
+      description: Неверный или отсутствующий токен сайта
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: invalid_token
+            message: Site token is invalid or revoked
+
+    SiteInactive:
+      description: Сайт приостановлен или в архиве
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: site_inactive
+            message: Site is paused or archived; leads are not accepted
+
+    ValidationError:
+      description: Ошибка валидации тела запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+          example:
+            error: validation_error
+            message: Request validation failed
+            details:
+              - field: channel
+                issue: must be one of form, call, email
+
+    RateLimited:
+      description: Превышен лимит запросов (60/мин на токен)
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Секунд до повторной попытки
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: rate_limit_exceeded
+            message: Too many requests for this site token
