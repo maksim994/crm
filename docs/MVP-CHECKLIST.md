@@ -27,7 +27,7 @@
 |------------|--------|------------|
 | Лид в UI ≤ 5 сек | ok | Ingest синхронный, без тяжёлых jobs |
 | Rate limit 60/min на token | да | `IngestRateLimitTest`, `throttle:ingest` |
-| Хранение 24 мес | config | `LEAD_RETENTION_MONTHS`, job удаления — backlog |
+| Хранение 24 мес | config + job | `LEAD_RETENTION_MONTHS`, `php artisan leads:prune` (cron 03:00) |
 | Healthcheck | да | `/health`, Docker `HEALTHCHECK` |
 | Prod Docker | да | `Dockerfile.prod`, [deploy-coolify.md](./deploy-coolify.md) |
 

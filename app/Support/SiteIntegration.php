@@ -22,6 +22,7 @@ class SiteIntegration
 
         $lines = [
             'Формы (seolead): '.$url,
+            'Метрика (после ответа CRM): yaCounter.params({ \'crm-lead\': <id> })',
             'Метод: GET или POST',
             'Параметры: token, phone, email, name, description, metrika_client_id, utm_*',
             '',

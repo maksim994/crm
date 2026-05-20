@@ -179,7 +179,7 @@ $(document).ready(function () {
       page_url: window.location.href
     }).done(function (res) {
       var id = res.id || res;
-      if (yaCounter && id) yaCounter.params({ wbooster: id });
+      if (yaCounter && id) yaCounter.params({ 'crm-lead': id });
     });
   });
 });

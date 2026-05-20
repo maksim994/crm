@@ -48,7 +48,9 @@ CACHE_STORE=redis
 
 | Переменная | По умолчанию | Назначение |
 |------------|--------------|------------|
-| `LEAD_RETENTION_MONTHS` | `24` | NFR хранения (job удаления — backlog) |
+| `LEAD_RETENTION_MONTHS` | `24` | NFR хранения; `php artisan leads:prune` (cron 03:00 в контейнере — нужен scheduler) |
+| `METRIKA_REPORTING_ENABLED` | `false` | Обогащение «Реклама» из Reporting API |
+| `METRIKA_OAUTH_TOKEN` | — | OAuth Яндекс, право `metrika:read` |
 | `CRM_INBOUND_DOMAIN` | `inbound.local` | Домен inbound-почты в prod |
 | `RUN_MIGRATIONS` | `true` | `false`, если миграции в Pre-deploy команде |
 | `LOG_CHANNEL` | `stack` | В prod можно `stderr` |
@@ -69,7 +71,7 @@ php artisan migrate --force --no-interaction
 
 ## 5. Queue worker
 
-Inbound email и фоновые задачи требуют воркера:
+Inbound email и фоновые задачи (обогащение из Метрики, почта) требуют воркера:
 
 ```bash
 php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600

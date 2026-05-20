@@ -7,6 +7,7 @@ use App\Enums\LeadStatus;
 use App\Exceptions\Ingest\InvalidSiteTokenException;
 use App\Exceptions\Ingest\SiteNotAcceptingLeadsException;
 use App\Integrations\Callibri\CallibriPayloadMapper;
+use App\Jobs\EnrichLeadFromMetrikaJob;
 use App\Models\Lead;
 use App\Models\Site;
 use App\Support\ContactExtractor;
@@ -186,7 +187,26 @@ class LeadIngestionService
      */
     private function createLead(Site $site, array $attributes): Lead
     {
-        return Lead::query()->create(array_merge(['site_id' => $site->id], $attributes));
+        $lead = Lead::query()->create(array_merge(['site_id' => $site->id], $attributes));
+
+        $this->dispatchMetrikaEnrichment($lead);
+
+        return $lead;
+    }
+
+    private function dispatchMetrikaEnrichment(Lead $lead): void
+    {
+        if (! config('metrika.reporting_enabled')) {
+            return;
+        }
+
+        $lead->loadMissing('site');
+
+        if (blank($lead->metrika_client_id) || blank($lead->site?->metrika_counter_id)) {
+            return;
+        }
+
+        EnrichLeadFromMetrikaJob::dispatch($lead->id);
     }
 
     /**

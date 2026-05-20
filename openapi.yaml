@@ -39,7 +39,7 @@ paths:
         Основной endpoint для заявок с сайта (Tilda и др.) и унифицированного приёма.
 
         После успешного ответа клиентская форма может передать `id` в Яндекс Метрику:
-        `yaCounter.params({ wbooster: id })`.
+        `yaCounter.params({ 'crm-lead': id })`.
 
         Rate limit: **60 запросов/мин** на токен.
       security:

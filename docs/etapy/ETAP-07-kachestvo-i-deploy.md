@@ -18,7 +18,7 @@
 |------------|------------|
 | Задержка лида в UI | ≤ 5 сек (ingest синхронный) |
 | Rate limit | 60/min на token (`throttle:ingest`, `IngestToken`) |
-| Ретенция | `LEAD_RETENTION_MONTHS=24` в config (job позже) |
+| Ретенция | `LEAD_RETENTION_MONTHS=24` в config; `php artisan leads:prune` (schedule daily 03:00) |
 | Логи | channel `stack` + при prod Sentry (опц., DSN в env) |
 
 ## Docker / Coolify
@@ -43,8 +43,6 @@
 
 ## После MVP (backlog)
 
-- Metrika Reporting API (v2)
 - Idempotency-Key на ingest
 - Horizon dashboard
 - Ротация токена с grace period
-- Job удаления лидов старше `lead_retention_months`

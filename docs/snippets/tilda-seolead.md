@@ -37,7 +37,7 @@ $(document).ready(function () {
     }).done(function (res) {
       var id = res.id || res;
       if (yaCounter && id) {
-        yaCounter.params({ wbooster: id });
+        yaCounter.params({ 'crm-lead': id });
       }
     });
   });

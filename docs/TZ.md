@@ -326,7 +326,7 @@ sequenceDiagram
 
 **Данные с формы:** телефон, email, имя, `description` (текст кнопки/формы), `page_url`, UTM из hidden fields или cookie, `metrika_client_id` из `yaCounter.getClientID()`.
 
-**Ответ:** `{ "id": "<lead_uuid>" }` — для обратной записи в Метрику (`yaCounter.params({ wbooster: id })`).
+**Ответ:** `{ "id": "<lead_uuid>" }` — для обратной записи в Метрику (`yaCounter.params({ 'crm-lead': id })`).
 
 ### 7.2. Коллтрекинг (Callibri)
 
@@ -357,7 +357,7 @@ sequenceDiagram
 
 ## 8. API приёма лидов
 
-**Основной endpoint для форм (Tilda):** `GET|POST /ingest/seolead` — параметры как в [PROEKT.md](./PROEKT.md) §5. Ответ `{ "id": "uuid" }` для `yaCounter.params({ wbooster: id })`.
+**Основной endpoint для форм (Tilda):** `GET|POST /ingest/seolead` — параметры как в [PROEKT.md](./PROEKT.md) §5. Ответ `{ "id": "uuid" }` для `yaCounter.params({ 'crm-lead': id })`.
 
 **Расширенный REST:** [openapi.yaml](../openapi.yaml) — `POST /api/v1/leads`, `POST /api/v1/leads/call`.
 
@@ -421,7 +421,7 @@ sequenceDiagram
 
 - В карточке сайта хранится `metrika_counter_id`.
 - При отправке формы передавать `metrika_client_id` строкой (без потери точности в JSON/БД).
-- После создания лида — опционально `yaCounter.params({ wbooster: <lead_id> })`.
+- После создания лида — опционально `yaCounter.params({ 'crm-lead': <lead_id> })` (см. [metrika-kanal-i-crm-lead.md](./metrika-kanal-i-crm-lead.md)).
 
 ### 9.2. Рекламный канал (`advertising_channel`)
 

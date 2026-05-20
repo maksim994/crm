@@ -10,6 +10,8 @@
 | [docs/TZ.md](docs/TZ.md) | Техническое задание |
 | [docs/etapy/README.md](docs/etapy/README.md) | Этапы разработки (1–7) |
 | [docs/deploy-coolify.md](docs/deploy-coolify.md) | Деплой staging/production (Coolify) |
+| [docs/integraciya-s-saytom.md](docs/integraciya-s-saytom.md) | Подключение сайта к CRM (формы, токен, тест) |
+| [docs/metrika-kanal-i-crm-lead.md](docs/metrika-kanal-i-crm-lead.md) | Параметр `crm-lead` в Метрике и рекламный канал в ЛК |
 | [docs/MVP-CHECKLIST.md](docs/MVP-CHECKLIST.md) | Приёмка MVP (ТЗ §14) |
 | [openapi.yaml](openapi.yaml) | OpenAPI 3.1 |
 
@@ -155,6 +157,7 @@ make cabinet-dev     # http://localhost:5174/cabinet/
 
 ### Интеграции (этап 6)
 
+- **Формы с сайта:** [docs/integraciya-s-saytom.md](docs/integraciya-s-saytom.md) — токен, `POST /ingest/seolead`, Tilda, curl.
 - **Звонки:** `POST /api/v1/leads/call?token={site_token}` или заголовок `X-Site-Token` (формат Callibri поддерживается).
 - **Почта (dev):** `php artisan mail:test-inbound {site_id} --sync` — адрес вида `leads+{uuid}@inbound.local` на карточке проекта.
 
@@ -194,5 +197,6 @@ SESSION_SECURE_COOKIE=true
 | NFR | Реализация |
 |-----|------------|
 | Rate limit ingest | 60 req/min на token + IP (`throttle:ingest`) |
-| Хранение лидов | `LEAD_RETENTION_MONTHS=24` (job очистки — backlog) |
+| Хранение лидов | `LEAD_RETENTION_MONTHS=24`, `leads:prune` |
+| Metrika v2 | `METRIKA_REPORTING_ENABLED`, OAuth, queue worker |
 | Health | `GET /health` |
