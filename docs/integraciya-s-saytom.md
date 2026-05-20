@@ -406,7 +406,7 @@ php artisan db:seed --force
 | Канал | URL | Как передать токен |
 |-------|-----|-------------------|
 | Звонок (Callibri и др.) | `POST /api/v1/leads/call?token=...` | query `token` или заголовок `X-Site-Token` |
-| Почта (inbound) | адрес на карточке проекта | парсинг письма на стороне CRM |
+| Почта (inbound) | `POST /ingest/inbound-email` | см. [integraciya-inbound-email.md](./integraciya-inbound-email.md) |
 
 Подробнее: [ETAP-06-integracii.md](./etapy/ETAP-06-integracii.md).
 

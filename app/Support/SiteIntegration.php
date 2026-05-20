@@ -16,6 +16,11 @@ class SiteIntegration
         return rtrim(config('app.url'), '/').'/api/v1/leads/call';
     }
 
+    public static function inboundEmailWebhookUrl(): string
+    {
+        return rtrim(config('app.url'), '/').'/ingest/inbound-email';
+    }
+
     public static function instructions(?Site $site = null): string
     {
         $url = self::ingestUrl();
@@ -29,6 +34,10 @@ class SiteIntegration
             'Звонки (Callibri и др.): '.self::callWebhookUrl(),
             'Метод: POST, token в query ?token=... или заголовок X-Site-Token',
             'Тело: phone или caller_phone, call_recording_url / record_url, call_duration_sec / duration',
+            '',
+            'Почта (webhook): '.self::inboundEmailWebhookUrl(),
+            'Метод: POST JSON или form (Mailgun), заголовок X-Inbound-Webhook-Secret при INBOUND_WEBHOOK_SECRET',
+            'Поля: to/recipient, from/sender, subject, body/body-plain',
         ];
 
         if ($site) {

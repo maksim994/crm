@@ -12,6 +12,7 @@
 | [docs/deploy-coolify.md](docs/deploy-coolify.md) | Деплой staging/production (Coolify) |
 | [docs/integraciya-s-saytom.md](docs/integraciya-s-saytom.md) | Подключение сайта к CRM (формы, токен, тест) |
 | [docs/metrika-kanal-i-crm-lead.md](docs/metrika-kanal-i-crm-lead.md) | Параметр `crm-lead` в Метрике и рекламный канал в ЛК |
+| [docs/integraciya-inbound-email.md](docs/integraciya-inbound-email.md) | Входящая почта (webhook, Mailgun) |
 | [docs/MVP-CHECKLIST.md](docs/MVP-CHECKLIST.md) | Приёмка MVP (ТЗ §14) |
 | [openapi.yaml](openapi.yaml) | OpenAPI 3.1 |
 
@@ -159,7 +160,8 @@ make cabinet-dev     # http://localhost:5174/cabinet/
 
 - **Формы с сайта:** [docs/integraciya-s-saytom.md](docs/integraciya-s-saytom.md) — токен, `POST /ingest/seolead`, Tilda, curl.
 - **Звонки:** `POST /api/v1/leads/call?token={site_token}` или заголовок `X-Site-Token` (формат Callibri поддерживается).
-- **Почта (dev):** `php artisan mail:test-inbound {site_id} --sync` — адрес вида `leads+{uuid}@inbound.local` на карточке проекта.
+- **Почта:** `POST /ingest/inbound-email` — [docs/integraciya-inbound-email.md](docs/integraciya-inbound-email.md) (Mailgun, без queue).
+- **Почта (dev CLI):** `php artisan mail:test-inbound {site_id} --sync`
 
 ## Деплой (Coolify / production)
 
