@@ -33,6 +33,12 @@ return [
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],
+        'metrika' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/metrika.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,

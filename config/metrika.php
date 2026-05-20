@@ -33,4 +33,10 @@ return [
     'reporting_timeout' => (int) env('METRIKA_REPORTING_TIMEOUT', 15),
     'reporting_lang' => env('METRIKA_REPORTING_LANG', 'ru'),
 
+    /*
+    | Подробные логи запросов/ответов Reporting API → storage/logs/metrika.log
+    | На время отладки: METRIKA_REPORTING_LOG=true
+    */
+    'reporting_log' => (bool) env('METRIKA_REPORTING_LOG', false),
+
 ];

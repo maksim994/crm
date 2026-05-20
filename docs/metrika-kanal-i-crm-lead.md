@@ -102,3 +102,73 @@ METRIKA_OAUTH_TOKEN=y0_AgAAAA...   # OAuth, право metrika:read
 После отправки формы job запрашивает `ym:s:trafficSource` по Client ID за день лида и обновляет **Рекламу** в ЛК (источник `ad` → «Переходы по рекламе»). При пустом `utm_campaign_first` подставляется кампания из Метрики.
 
 Требуется **queue worker** (`php artisan queue:work redis`) на том же окружении, что и web.
+
+---
+
+## 7. Отладка запросов в Reporting API
+
+### Включить лог
+
+```env
+METRIKA_REPORTING_ENABLED=true
+METRIKA_OAUTH_TOKEN=...
+METRIKA_REPORTING_LOG=true
+```
+
+Лог пишется в **`storage/logs/metrika.log`** (OAuth-токен в лог **не** попадает, в URL его тоже нет).
+
+События:
+
+| Ключ в логе | Что значит |
+|-------------|------------|
+| `metrika.job.start` | Job взял лид в работу |
+| `metrika.reporting.request` | URL и параметры запроса (filters, dimensions, date) |
+| `metrika.reporting.response` | HTTP-статус, `total_rows`, число строк |
+| `metrika.reporting.parsed` | Распознанный источник трафика и UTM |
+| `metrika.reporting.empty_attribution` | Метрика ответила, но визит с Client ID не найден |
+| `metrika.reporting.failed` | Ошибка API (401, 403, 400…) — смотрите `body` |
+| `metrika.enrich.applied` | Поля лида обновлены |
+
+Просмотр на сервере:
+
+```bash
+# локально
+docker compose exec app tail -f storage/logs/metrika.log
+
+# production (в контейнере Coolify)
+tail -f /var/www/html/storage/logs/metrika.log
+```
+
+В Coolify можно смотреть **логи queue worker** — там же stderr, если `LOG_CHANNEL=stderr` (предупреждения дублируются в `laravel.log`).
+
+### Команда проверки по лиду (без очереди)
+
+```bash
+php artisan metrika:test-lead <UUID_лида>
+```
+
+Покажет URL запроса, выполнит enrich синхронно и выведет «Реклама до/после».
+
+Только URL без вызова API:
+
+```bash
+php artisan metrika:test-lead <UUID> --show-url
+```
+
+Проверка вручную через curl (подставьте токен и URL из `--show-url`):
+
+```bash
+curl -sS -H "Authorization: OAuth ВАШ_ТОКЕН" \
+  "https://api-metrika.yandex.net/stat/v1/data?ids=СЧЁТЧИК&..."
+```
+
+### Частые проблемы
+
+| Симптом | Причина |
+|---------|---------|
+| Нет строк в логе `metrika.*` | `METRIKA_REPORTING_LOG=false` или не запущен worker |
+| `401` в `metrika.reporting.failed` | Неверный или просроченный OAuth |
+| `empty_attribution` | Client ID не совпал с визитом **за дату лида** (другой день, другой счётчик) |
+| Job не стартует | Нет `metrika_client_id` на лиде или счётчика на проекте |
+
+**Важно:** CRM ходит в **Reporting API** (чтение статистики), а не отправляет данные *в* Метрику. На сайт данные уходят через `yaCounter.params({ 'crm-lead': id })` — это проверяется в интерфейсе Метрики (отчёт «Параметры визита»).

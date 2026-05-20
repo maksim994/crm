@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Services\MetrikaLeadEnricher;
+use App\Support\MetrikaLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -21,6 +22,13 @@ class EnrichLeadFromMetrikaJob implements ShouldQueue
 
     public function handle(MetrikaLeadEnricher $enricher): void
     {
-        $enricher->enrich($this->leadId);
+        MetrikaLog::info('metrika.job.start', ['lead_id' => $this->leadId]);
+
+        $applied = $enricher->enrich($this->leadId);
+
+        MetrikaLog::info('metrika.job.done', [
+            'lead_id' => $this->leadId,
+            'applied' => $applied,
+        ]);
     }
 }
