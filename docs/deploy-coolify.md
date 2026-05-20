@@ -17,7 +17,7 @@
 | `APP_KEY` | `base64:...` | `php artisan key:generate --show` локально |
 | `APP_ENV` | `production` | |
 | `APP_DEBUG` | `false` | |
-| `APP_URL` | `https://crm.example.com` | С протоколом, без слэша в конце |
+| `APP_URL` | `https://crm.mv-deploy.ru` | С протоколом, без слэша в конце |
 | `DB_HOST` | managed Postgres host | |
 | `DB_PORT` | `5432` | |
 | `DB_DATABASE` | `wbooster_crm` | |
@@ -27,8 +27,13 @@
 | `CACHE_STORE` | `redis` | |
 | `SESSION_DRIVER` | `redis` | |
 | `QUEUE_CONNECTION` | `redis` | Worker — отдельный процесс (см. ниже) |
-| `SANCTUM_STATEFUL_DOMAINS` | `crm.example.com` | Домен SPA |
-| `SESSION_DOMAIN` | `.example.com` | При необходимости |
+| `SANCTUM_STATEFUL_DOMAINS` | `crm.mv-deploy.ru` | Домен SPA, **без** `https://` |
+| `SESSION_DOMAIN` | `.mv-deploy.ru` | Опционально, для cookie на поддоменах |
+
+```env
+APP_URL=https://crm.mv-deploy.ru
+SANCTUM_STATEFUL_DOMAINS=crm.mv-deploy.ru
+```
 
 ## 3. Рекомендуемые
 
@@ -66,13 +71,13 @@ php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
 ## 6. Проверка после деплоя
 
 ```bash
-curl -sf https://crm.example.com/health
+curl -sf https://crm.mv-deploy.ru/health
 ```
 
 Приём лида (токен с карточки сайта в админке):
 
 ```bash
-curl -X POST "https://crm.example.com/ingest/seolead" \
+curl -X POST "https://crm.mv-deploy.ru/ingest/seolead" \
   -H "Content-Type: application/json" \
   -d '{"token":"SITE_TOKEN","phone":"+79001234567","description":"staging test"}'
 ```

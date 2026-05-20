@@ -18,10 +18,10 @@ info:
     name: WBooster
 
 servers:
-  - url: https://api.example.com
-    description: Production (заменить на фактический хост)
-  - url: https://staging-api.example.com
-    description: Staging
+  - url: https://crm.mv-deploy.ru
+    description: Production (Coolify)
+  - url: http://localhost:8080
+    description: Local Docker
 
 tags:
   - name: Leads

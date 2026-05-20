@@ -172,6 +172,23 @@ curl -sf http://localhost:8080/health
 Подробно: [docs/deploy-coolify.md](docs/deploy-coolify.md).  
 Чеклист приёмки MVP: [docs/MVP-CHECKLIST.md](docs/MVP-CHECKLIST.md).
 
+### Production (Coolify)
+
+| | URL |
+|---|-----|
+| Приложение | https://crm.mv-deploy.ru |
+| Админка | https://crm.mv-deploy.ru/admin/ |
+| ЛК | https://crm.mv-deploy.ru/cabinet/ |
+| Health | https://crm.mv-deploy.ru/health |
+| Ingest | https://crm.mv-deploy.ru/ingest/seolead |
+
+В Coolify **General → Domains** и в env должны совпадать:
+
+```env
+APP_URL=https://crm.mv-deploy.ru
+SANCTUM_STATEFUL_DOMAINS=crm.mv-deploy.ru
+```
+
 | NFR | Реализация |
 |-----|------------|
 | Rate limit ingest | 60 req/min на token + IP (`throttle:ingest`) |
