@@ -9,6 +9,9 @@ fi
 
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
+
+if [ -d resources/views ] && [ -n "$(ls -A resources/views 2>/dev/null)" ]; then
+    php artisan view:cache
+fi
 
 exec "$@"
