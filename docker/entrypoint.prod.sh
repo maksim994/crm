@@ -8,10 +8,11 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
 fi
 
 php artisan config:cache
-php artisan route:cache
 
-if [ -d resources/views ] && [ -n "$(ls -A resources/views 2>/dev/null)" ]; then
+if compgen -G "resources/views/*.blade.php" > /dev/null; then
     php artisan view:cache
 fi
+
+chown -R www-data:www-data storage bootstrap/cache
 
 exec "$@"

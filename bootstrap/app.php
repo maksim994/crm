@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             \Illuminate\Support\Facades\Route::middleware('api')
+                ->get('/health', \App\Http\Controllers\HealthController::class);
+
+            \Illuminate\Support\Facades\Route::middleware('api')
                 ->prefix('ingest')
                 ->group(base_path('routes/ingest.php'));
 
