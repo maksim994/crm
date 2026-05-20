@@ -14,6 +14,7 @@ class HealthController extends Controller
             'app' => 'ok',
             'database' => $this->checkDatabase(),
             'redis' => $this->checkRedis(),
+            'session' => $this->checkSessionStorage(),
         ];
 
         $healthy = ! in_array('error', $checks, true);
@@ -39,6 +40,31 @@ class HealthController extends Controller
     {
         try {
             Redis::ping();
+
+            return 'ok';
+        } catch (\Throwable) {
+            return 'error';
+        }
+    }
+
+    private function checkSessionStorage(): string
+    {
+        try {
+            $driver = config('session.driver');
+
+            if ($driver === 'file') {
+                $path = (string) config('session.files');
+
+                return is_dir($path) && is_writable($path) ? 'ok' : 'error';
+            }
+
+            if ($driver === 'redis') {
+                $key = 'health_session_probe';
+                Redis::setex($key, 10, '1');
+                Redis::del($key);
+
+                return 'ok';
+            }
 
             return 'ok';
         } catch (\Throwable) {
