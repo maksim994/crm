@@ -23,17 +23,24 @@
 | `DB_DATABASE` | `wbooster_crm` | |
 | `DB_USERNAME` | | |
 | `DB_PASSWORD` | | |
-| `REDIS_HOST` | managed Redis | Rate limit ingest, сессии, очереди |
+| `REDIS_HOST` | managed Redis | Кэш, очереди, rate limit |
 | `CACHE_STORE` | `redis` | |
-| `SESSION_DRIVER` | `redis` | |
+| `SESSION_DRIVER` | `file` | **Рекомендуется `file` на Coolify** (сессии SPA); Redis — для cache/queue |
 | `QUEUE_CONNECTION` | `redis` | Worker — отдельный процесс (см. ниже) |
 | `SANCTUM_STATEFUL_DOMAINS` | `crm.mv-deploy.ru` | Домен SPA, **без** `https://` |
-| `SESSION_DOMAIN` | `.mv-deploy.ru` | Опционально, для cookie на поддоменах |
+| `SESSION_SECURE_COOKIE` | `true` | Обязательно для HTTPS |
 
 ```env
 APP_URL=https://crm.mv-deploy.ru
 SANCTUM_STATEFUL_DOMAINS=crm.mv-deploy.ru
+SESSION_DRIVER=file
+SESSION_SECURE_COOKIE=true
+CACHE_STORE=redis
 ```
+
+**Redis:** можно задать одной строкой `REDIS_URL` из Coolify (internal URL) вместо `REDIS_HOST` / `REDIS_PASSWORD`.
+
+**APP_KEY:** без кавычек в значении.
 
 ## 3. Рекомендуемые
 

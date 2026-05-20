@@ -187,6 +187,8 @@ curl -sf http://localhost:8080/health
 ```env
 APP_URL=https://crm.mv-deploy.ru
 SANCTUM_STATEFUL_DOMAINS=crm.mv-deploy.ru
+SESSION_DRIVER=file
+SESSION_SECURE_COOKIE=true
 ```
 
 | NFR | Реализация |
