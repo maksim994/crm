@@ -15,6 +15,9 @@ class HealthController extends Controller
             'database' => $this->checkDatabase(),
             'redis' => $this->checkRedis(),
             'session' => $this->checkSessionStorage(),
+            'session_start' => $this->checkSessionStart(),
+            'crypto' => $this->checkEncrypter(),
+            'session_driver' => (string) config('session.driver'),
         ];
 
         $healthy = ! in_array('error', $checks, true);
@@ -65,6 +68,35 @@ class HealthController extends Controller
 
                 return 'ok';
             }
+
+            return 'ok';
+        } catch (\Throwable) {
+            return 'error';
+        }
+    }
+
+    private function checkSessionStart(): string
+    {
+        try {
+            $session = app('session.store');
+
+            if (! $session->isStarted()) {
+                $session->start();
+            }
+
+            $session->put('_health_probe', '1');
+            $session->save();
+
+            return 'ok';
+        } catch (\Throwable) {
+            return 'error';
+        }
+    }
+
+    private function checkEncrypter(): string
+    {
+        try {
+            app('encrypter')->encrypt('health-probe');
 
             return 'ok';
         } catch (\Throwable) {

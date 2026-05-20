@@ -14,6 +14,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Support\Facades\Route::middleware('api')
                 ->get('/health', \App\Http\Controllers\HealthController::class);
 
+            \Illuminate\Support\Facades\Route::middleware('web')
+                ->get('/health/web-stack', \App\Http\Controllers\WebStackHealthController::class);
+
+            \Illuminate\Support\Facades\Route::prefix('sanctum')
+                ->middleware('spa')
+                ->get('/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookieController::class, 'show'])
+                ->name('sanctum.csrf-cookie');
+
             \Illuminate\Support\Facades\Route::middleware('api')
                 ->prefix('ingest')
                 ->group(base_path('routes/ingest.php'));
@@ -26,6 +34,16 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
 
+        $middleware->web(remove: [
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        ]);
+
+        $middleware->group('spa', [
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
+
         $middleware->statefulApi();
 
         $middleware->alias([
@@ -34,5 +52,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->reportable(function (\Throwable $exception): void {
+            if (app()->environment('production')) {
+                error_log(sprintf(
+                    'wbooster.exception: %s in %s:%d',
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine(),
+                ));
+            }
+        });
     })->create();

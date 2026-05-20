@@ -9,12 +9,19 @@ if [ "${APP_ENV:-local}" = "production" ]; then
     export SESSION_SECURE_COOKIE="${SESSION_SECURE_COOKIE:-true}"
 fi
 
+# Убрать случайные кавычки в APP_KEY из UI Coolify
+if [ -n "${APP_KEY:-}" ]; then
+    APP_KEY=$(printf '%s' "$APP_KEY" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+    export APP_KEY
+fi
+
 mkdir -p storage/framework/sessions storage/framework/cache/data storage/framework/views storage/logs bootstrap/cache
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
     php artisan migrate --force --no-interaction
 fi
 
+php artisan config:clear
 php artisan config:cache
 
 if compgen -G "resources/views/*.blade.php" > /dev/null; then
