@@ -229,6 +229,7 @@ import {
   TableIcon,
   ListIcon,
   PlugInIcon,
+  UserGroupIcon,
 } from "../../icons";
 import SidebarWidget from "./SidebarWidget.vue";
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
@@ -262,11 +263,21 @@ const menuGroups = [
         name: "Лиды",
         path: "/leads",
       },
+      {
+        icon: UserGroupIcon,
+        name: "Администраторы",
+        path: "/admins",
+      },
+      {
+        icon: DocsIcon,
+        name: "Документация",
+        path: "/docs",
+      },
     ],
   },
 ];
 
-const isActive = (path) => route.path === path;
+const isActive = (path) => route.path === path || (path !== '/' && route.path.startsWith(`${path}/`));
 
 const toggleSubmenu = (groupIndex, itemIndex) => {
   const key = `${groupIndex}-${itemIndex}`;

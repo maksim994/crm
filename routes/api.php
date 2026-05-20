@@ -5,7 +5,9 @@ use App\Http\Controllers\Api\Admin\AgencyClientController;
 use App\Http\Controllers\Api\Admin\ClientCabinetImpersonateController;
 use App\Http\Controllers\Api\Admin\ClientCabinetUserController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\DocumentationController;
 use App\Http\Controllers\Api\Admin\LeadController;
+use App\Http\Controllers\Api\Admin\PlatformAdminUserController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Client\AuthController as ClientAuthController;
 use App\Http\Controllers\Api\Client\ImpersonateController;
@@ -35,6 +37,10 @@ Route::prefix('admin')->group(function () {
         Route::get('user', [AuthController::class, 'user']);
         Route::get('dashboard', DashboardController::class);
 
+        Route::get('docs', [DocumentationController::class, 'index']);
+        Route::get('docs/{slug}', [DocumentationController::class, 'show']);
+        Route::apiResource('platform-admins', PlatformAdminUserController::class)
+            ->parameters(['platform-admins' => 'platformAdmin']);
         Route::apiResource('clients', AgencyClientController::class);
         Route::apiResource('clients.cabinet-users', ClientCabinetUserController::class)
             ->parameters(['cabinet-users' => 'cabinetUser']);

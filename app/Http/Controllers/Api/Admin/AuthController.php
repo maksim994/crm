@@ -33,6 +33,14 @@ class AuthController extends Controller
             ]);
         }
 
+        if (! Auth::user()->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => ['Учётная запись администратора отключена.'],
+            ]);
+        }
+
         if ($request->hasSession()) {
             $request->session()->regenerate();
         }

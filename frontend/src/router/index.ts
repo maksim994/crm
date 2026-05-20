@@ -98,6 +98,30 @@ const router = createRouter({
       meta: { title: 'Редактирование лида', requiresAuth: true },
     },
     {
+      path: '/admins',
+      name: 'Admins',
+      component: () => import('@/views/wbooster/admins/Index.vue'),
+      meta: { title: 'Администраторы', requiresAuth: true },
+    },
+    {
+      path: '/admins/create',
+      name: 'AdminsCreate',
+      component: () => import('@/views/wbooster/admins/Form.vue'),
+      meta: { title: 'Новый администратор', requiresAuth: true },
+    },
+    {
+      path: '/admins/:id/edit',
+      name: 'AdminsEdit',
+      component: () => import('@/views/wbooster/admins/Form.vue'),
+      meta: { title: 'Редактирование администратора', requiresAuth: true },
+    },
+    {
+      path: '/docs/:slug?',
+      name: 'Docs',
+      component: () => import('@/views/wbooster/docs/Show.vue'),
+      meta: { title: 'Документация', requiresAuth: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },

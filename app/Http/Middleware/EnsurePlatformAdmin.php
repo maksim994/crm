@@ -13,7 +13,9 @@ class EnsurePlatformAdmin
     {
         $user = $request->user();
 
-        if ($user === null || $user->role !== UserRole::PlatformAdmin) {
+        if ($user === null
+            || $user->role !== UserRole::PlatformAdmin
+            || ! $user->is_active) {
             abort(403);
         }
 
