@@ -44,10 +44,35 @@ class HealthController extends Controller
 
         $healthy = ! in_array('error', $checks, true);
 
-        return response()->json([
+        $payload = [
             'status' => $healthy ? 'ok' : 'degraded',
             'checks' => $checks,
-        ], $healthy ? 200 : 503);
+        ];
+
+        if (! $healthy) {
+            $payload['issues'] = $this->collectIssues($checks);
+        }
+
+        return response()->json($payload, $healthy ? 200 : 503);
+    }
+
+    /**
+     * @param  array<string, string>  $checks
+     * @return list<string>
+     */
+    private function collectIssues(array $checks): array
+    {
+        $issues = [];
+
+        if (($checks['crypto'] ?? null) === 'error') {
+            $issues[] = 'APP_KEY missing or invalid. In Coolify set Runtime-only APP_KEY=base64:... from `php artisan key:generate --show`.';
+        }
+
+        if (($checks['session_start'] ?? null) === 'error') {
+            $issues[] = 'Session cannot start. Check storage/framework/sessions permissions and SESSION_DRIVER.';
+        }
+
+        return $issues;
     }
 
     private function checkDatabase(): string

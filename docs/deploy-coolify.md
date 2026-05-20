@@ -40,7 +40,9 @@ CACHE_STORE=redis
 
 **Redis:** можно задать одной строкой `REDIS_URL` из Coolify (internal URL) вместо `REDIS_HOST` / `REDIS_PASSWORD`.
 
-**APP_KEY:** без кавычек в значении.
+**APP_KEY:** без кавычек, формат `base64:...`. Только **Runtime only**. Entrypoint **не** делает `config:cache` по умолчанию — иначе пустой ключ запекается в кеш и ломает login (`crypto: error`).
+
+Проверка после деплоя: `GET /health/ready` → `crypto: ok`. Если `crypto: error`, задайте ключ и **Restart** контейнера (или `php artisan config:clear` внутри контейнера).
 
 ## 3. Рекомендуемые
 
