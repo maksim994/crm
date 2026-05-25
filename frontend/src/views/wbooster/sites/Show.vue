@@ -38,7 +38,7 @@
               <dd>{{ site.timezone }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Email inbound</dt>
+              <dt class="text-gray-500">Почта проекта</dt>
               <dd class="text-right">{{ site.email_inbound_address || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">

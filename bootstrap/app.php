@@ -57,6 +57,10 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('leads:prune')->dailyAt('03:00');
+
+        if (config('crm.inbound_imap.enabled')) {
+            $schedule->command('mail:fetch-inbound')->everyFiveMinutes();
+        }
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->reportable(function (\Throwable $exception): void {

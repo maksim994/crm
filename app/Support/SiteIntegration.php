@@ -35,9 +35,12 @@ class SiteIntegration
             'Метод: POST, token в query ?token=... или заголовок X-Site-Token',
             'Тело: phone или caller_phone, call_recording_url / record_url, call_duration_sec / duration',
             '',
-            'Почта (webhook): '.self::inboundEmailWebhookUrl(),
-            'Метод: POST JSON или form (Mailgun), заголовок X-Inbound-Webhook-Secret при INBOUND_WEBHOOK_SECRET',
-            'Поля: to/recipient, from/sender, subject, body/body-plain',
+            'Почта (IMAP): служебный ящик INBOUND_IMAP_* (напр. mail@mv-deploy.ru)',
+            'На проекте — адрес пересылки (email_inbound_address), с него forward на служебный ящик',
+            'Cron: php artisan schedule:run → mail:fetch-inbound каждые 5 мин',
+            '',
+            'Почта (webhook, опционально): '.self::inboundEmailWebhookUrl(),
+            'POST JSON/form, X-Inbound-Webhook-Secret при INBOUND_WEBHOOK_SECRET',
         ];
 
         if ($site) {
@@ -47,8 +50,11 @@ class SiteIntegration
             if ($site->metrika_counter_id) {
                 $lines[] = 'Счётчик Метрики: '.$site->metrika_counter_id;
             }
-            $inbound = $site->email_inbound_address ?? InboundEmailAddress::forSite($site);
-            $lines[] = 'Входящая почта: '.$inbound;
+            if ($site->email_inbound_address) {
+                $lines[] = 'Почта проекта (пересылка с этого адреса): '.$site->email_inbound_address;
+            } else {
+                $lines[] = 'Почта проекта: не задана — укажите в настройках и настройте пересылку на служебный ящик';
+            }
         }
 
         return implode("\n", $lines);

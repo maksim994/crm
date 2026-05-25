@@ -1,144 +1,148 @@
-# Интеграция входящей почты (реальный приём)
+# Интеграция входящей почты
 
-Письма принимаются через **HTTP webhook** — без queue worker и без `mail:test-inbound`.  
-Обработка **синхронная**: ответ сразу с `id` лида.
+Два способа принять письмо в CRM как лид (`channel=email`):
 
-```
-Письмо → Mailgun / пересылка → POST https://crm.../ingest/inbound-email → лид в CRM
-```
+1. **IMAP (рекомендуется)** — один служебный ящик, пересылка с почты каждого проекта.
+2. **HTTP webhook** — Mailgun или curl на `POST /ingest/inbound-email`.
 
 ---
 
-## 1. Адрес проекта
+## 1. Схема IMAP (пересылка → служебный ящик)
 
-В админке на карточке **Проекта** поле **Email inbound**, например:
+```
+[zayavki@client.ru]  ──пересылка──►  [mail@mv-deploy.ru]
+                                              │
+                                    CRM: IMAP UNSEEN
+                                    сопоставление по адресу проекта
+```
+
+### Шаг 1. Служебный ящик
+
+Создайте почту, например `mail@mv-deploy.ru`, с доступом по **IMAP** (SSL, порт 993).
+
+### Шаг 2. Проект в CRM
+
+В админке → **Проект** → поле **«Почта проекта (для пересылки)»** — любой реальный адрес, с которого клиенты пишут или который указан на сайте, например:
 
 ```text
-leads+a1d2918cf1494de4bdc1c9a9a81c2c4e@inbound.wbooster.ru
+zayavki@ruflex.ru
 ```
 
-Формат: `{prefix}+{site_uuid без дефисов}@{CRM_INBOUND_DOMAIN}`
+### Шаг 3. Пересылка на служебный ящик
 
-Env:
+В панели хостинга / Яндекс / Gmail для **почты проекта** настройте правило:
+
+- все входящие → переслать на `mail@mv-deploy.ru`
+
+CRM при чтении письма ищет в заголовках и теле пересылки оригинальный адрес (`To`, `X-Original-To`, `Delivered-To`, блок «Кому:» в теле) и находит проект по `sites.email_inbound_address`.
+
+### Шаг 4. Env в Coolify
 
 ```env
-CRM_INBOUND_LOCAL_PREFIX=leads
-CRM_INBOUND_DOMAIN=inbound.wbooster.ru
-INBOUND_WEBHOOK_SECRET=длинный-случайный-секрет
+INBOUND_IMAP_ENABLED=true
+INBOUND_IMAP_HOST=imap.your-mail-host.ru
+INBOUND_IMAP_PORT=993
+INBOUND_IMAP_ENCRYPTION=ssl
+INBOUND_IMAP_USERNAME=mail@mv-deploy.ru
+INBOUND_IMAP_PASSWORD=***
+INBOUND_IMAP_FOLDER=INBOX
+INBOUND_IMAP_MARK_READ=true
+# Опционально: если адрес не распознан — все такие письма в один проект
+# INBOUND_IMAP_DEFAULT_SITE_ID=uuid-проекта
 ```
 
-После смены `CRM_INBOUND_DOMAIN` пересохраните проект или задайте `email_inbound_address` вручную.
+Пересоберите образ (нужно PHP **ext-imap** в `Dockerfile.prod`).
+
+### Шаг 5. Cron
+
+В Coolify добавьте cron для контейнера web (или отдельного scheduler):
+
+```bash
+* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Планировщик Laravel каждые **5 минут** вызывает `mail:fetch-inbound` (если `INBOUND_IMAP_ENABLED=true`).
+
+Ручная проверка:
+
+```bash
+php artisan mail:fetch-inbound
+```
+
+Логи: `inbound_imap.*` в `storage/logs/laravel.log`.
+
+### Шаг 6. Тест
+
+1. Отправьте письмо на `zayavki@ruflex.ru` (или сразу на проектный адрес с пересылкой).
+2. Убедитесь, что оно попало в `mail@mv-deploy.ru`.
+3. Запустите `mail:fetch-inbound` или дождитесь cron.
+4. В CRM → **Лиды** → канал **Заявка на почту**.
 
 ---
 
-## 2. Endpoint CRM
+## 2. HTTP webhook (альтернатива)
+
+Без IMAP: Mailgun принимает MX на поддомен и шлёт POST в CRM.
 
 | | |
 |---|---|
 | **URL** | `POST https://crm.mv-deploy.ru/ingest/inbound-email` |
-| **Auth** | заголовок `X-Inbound-Webhook-Secret: <INBOUND_WEBHOOK_SECRET>` |
-| **Ответ** | `201` → `{"id":"...","channel":"email","is_duplicate":false}` |
+| **Auth** | `X-Inbound-Webhook-Secret: <INBOUND_WEBHOOK_SECRET>` |
+| **Ответ** | `201` → `{"id":"...","channel":"email"}` |
 
-### Поля (JSON или form-urlencoded)
+Поле `to` / `recipient` должно совпадать с **почтой проекта** в CRM (как при IMAP).
 
-| Поле CRM | Альтернативы (Mailgun) | Обязательно |
-|----------|------------------------|-------------|
-| `to` | `recipient` | да |
-| `from` | `sender`, `From` | да |
-| `subject` | `Subject` | нет |
-| `body` | `body-plain`, `stripped-text`, `text` | нет (но нужен телефон или email в from/body) |
-
----
-
-## 3. Тест без почтового сервера (curl = реальный HTTP)
-
-Подставьте **to** с карточки проекта и секрет из Coolify:
+### curl (без почтового сервера)
 
 ```bash
 curl -sS -X POST "https://crm.mv-deploy.ru/ingest/inbound-email" \
   -H "Content-Type: application/json" \
   -H "X-Inbound-Webhook-Secret: ВАШ_СЕКРЕТ" \
   -d '{
-    "to": "leads+a1d2918cf1494de4bdc1c9a9a81c2c4e@inbound.wbooster.ru",
-    "from": "real.client@gmail.com",
-    "subject": "Заявка с сайта",
-    "body": "Добрый день, перезвоните +79001234567"
+    "to": "zayavki@client.ru",
+    "from": "client@gmail.com",
+    "subject": "Заявка",
+    "body": "Перезвоните +79001234567"
   }'
 ```
 
-Проверка: **Лиды** в админке → канал **Заявка на почту**, телефон и email из письма.
-
-Имитация формата **Mailgun**:
-
-```bash
-curl -sS -X POST "https://crm.mv-deploy.ru/ingest/inbound-email" \
-  -H "X-Inbound-Webhook-Secret: ВАШ_СЕКРЕТ" \
-  -d "recipient=leads+...@inbound.wbooster.ru" \
-  -d "sender=client@example.com" \
-  -d "subject=Тест" \
-  -d "body-plain=Телефон +79009876543"
-```
-
----
-
-## 4. Реальное письмо с Gmail / Outlook (через Mailgun)
-
-### Шаг 1. Домен в Mailgun
-
-1. Добавьте домен `inbound.wbooster.ru` (или поддомен) в [Mailgun](https://www.mailgun.com/).
-2. Настройте DNS (MX, TXT) по инструкции Mailgun.
-3. **Receiving** → Routes → Create Route:
-   - **Expression:** `match_recipient(".*@inbound.wbooster.ru")` или точный адрес проекта
-   - **Action:** Forward to URL  
-     `https://crm.mv-deploy.ru/ingest/inbound-email`
-   - Добавьте в Mailgun **HTTP header**:  
-     `X-Inbound-Webhook-Secret: <ваш INBOUND_WEBHOOK_SECRET>`
-
-### Шаг 2. Отправьте письмо
-
-С личной почты отправьте на адрес с карточки проекта, например:
-
-```text
-leads+a1d2918cf1494de4bdc1c9a9a81c2c4e@inbound.wbooster.ru
-```
-
-Тема/тело: укажите телефон `+7...`
-
-### Шаг 3. Проверка
-
-- Mailgun → **Logs** → webhook delivery `200`
-- CRM → **Лиды** → новый лид `channel=email`
-- Логи CRM: `inbound_email.received`
-
----
-
-## 5. Coolify env
+Env:
 
 ```env
-CRM_INBOUND_DOMAIN=inbound.wbooster.ru
-INBOUND_WEBHOOK_SECRET=<случайная строка>
-APP_URL=https://crm.mv-deploy.ru
+INBOUND_WEBHOOK_SECRET=длинный-случайный-секрет
 ```
 
-**Runtime only**, redeploy web. Queue worker для почты **не нужен**.
+Queue worker для webhook **не нужен** (обработка синхронная).
 
 ---
 
-## 6. Ошибки
+## 3. Старый формат leads+uuid@domain
 
-| Код | Причина |
-|-----|---------|
-| 401 | Неверный или отсутствует `X-Inbound-Webhook-Secret` |
-| 404 | `to` не совпадает ни с одним проектом |
-| 422 | Нет `to`/`from` или не извлечён телефон/email |
-| 403 | Проект на паузе / в архиве |
+Автогенерация `leads+{uuid}@CRM_INBOUND_DOMAIN` при создании проекта **отключена**.  
+Можно по-прежнему указать такой адрес вручную в поле проекта, если используете Mailgun на поддомен.
+
+```env
+CRM_INBOUND_LOCAL_PREFIX=leads
+CRM_INBOUND_DOMAIN=inbound.example.com
+```
 
 ---
 
-## 7. Отличие от `mail:test-inbound`
+## 4. Ошибки
 
-| | `mail:test-inbound` | `POST /ingest/inbound-email` |
-|--|---------------------|------------------------------|
-| Как вызывается | CLI в контейнере | HTTP (Mailgun, curl, Zapier) |
-| Очередь | опционально | нет, сразу лид |
-| Реальное письмо | нет | да, через Mailgun/MX |
+| Ситуация | Что проверить |
+|----------|----------------|
+| Письмо в ящике, лида нет | `email_inbound_address` в проекте, пересылка, заголовки в логе `inbound_imap.message` |
+| `inbound_imap.connect_failed` | host/port/login/password, SSL |
+| `extension_missing` | пересборка Docker с `imap` |
+| Webhook 404 | `to` не совпадает с почтой проекта |
+| Webhook 401 | `INBOUND_WEBHOOK_SECRET` |
+
+---
+
+## 5. CLI для отладки
+
+| Команда | Назначение |
+|---------|------------|
+| `php artisan mail:fetch-inbound` | забрать UNSEEN по IMAP |
+| `php artisan mail:test-inbound` | имитация job (очередь), для dev |

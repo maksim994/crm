@@ -12,12 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libicu-dev \
     libzip-dev \
+    libc-client-dev \
+    libkrb5-dev \
+    && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install -j1 \
         pdo_pgsql \
         intl \
         bcmath \
         opcache \
         zip \
+        imap \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get clean \

@@ -43,6 +43,17 @@
           </FormSelect>
         </div>
         <FormInput v-model="form.timezone" label="Timezone" id="site-timezone" />
+        <FormInput
+          v-model="form.email_inbound_address"
+          label="Почта проекта (для пересылки)"
+          id="site-inbound-email"
+          type="email"
+          placeholder="zayavki@client.ru"
+        />
+        <p class="-mt-3 text-sm text-gray-500 dark:text-gray-400">
+          Любой адрес проекта. Настройте на нём пересылку всех входящих на служебный ящик CRM
+          (например mail@mv-deploy.ru). CRM сопоставит проект по этому адресу в заголовках письма.
+        </p>
         <div v-if="isEdit">
           <Button type="button" variant="warning" @click="regenerate">Перевыпустить токен</Button>
         </div>

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\SiteResource;
 use App\Models\Site;
-use App\Support\InboundEmailAddress;
 use App\Support\SiteIntegration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,7 +33,7 @@ class SiteController extends Controller
             'integration' => SiteIntegration::instructions($site),
             'ingest_url' => SiteIntegration::ingestUrl(),
             'call_webhook_url' => SiteIntegration::callWebhookUrl(),
-            'inbound_email' => $site->email_inbound_address ?? InboundEmailAddress::forSite($site),
+            'inbound_email' => $site->email_inbound_address,
         ]);
     }
 
@@ -44,13 +43,6 @@ class SiteController extends Controller
         $data['token_hash'] = '';
         $site = Site::query()->create($data);
         $token = $site->issueToken();
-
-        if ($site->email_inbound_address === null) {
-            $site->update([
-                'email_inbound_address' => InboundEmailAddress::forSite($site),
-            ]);
-            $site->refresh();
-        }
 
         return response()->json([
             'data' => new SiteResource($site->load('agencyClient')),
@@ -101,6 +93,12 @@ class SiteController extends Controller
         ]);
 
         $data['domains'] = array_values(array_filter(array_map('trim', $data['domains'])));
+
+        if (! empty($data['email_inbound_address'])) {
+            $data['email_inbound_address'] = strtolower(trim((string) $data['email_inbound_address']));
+        } else {
+            $data['email_inbound_address'] = null;
+        }
 
         return $data;
     }
