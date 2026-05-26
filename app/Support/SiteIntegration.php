@@ -29,7 +29,7 @@ class SiteIntegration
             'Формы (seolead): '.$url,
             'Метрика (после ответа CRM): yaCounter.params({ \'crm-lead\': <id> })',
             'Метод: GET или POST',
-            'Параметры: token, phone, email, name, description, metrika_client_id, utm_*',
+            'Параметры: token, phone, email, name, description, product, comment, metrika_client_id, utm_*',
             '',
             'Звонки (Callibri и др.): '.self::callWebhookUrl(),
             'Метод: POST, token в query ?token=... или заголовок X-Site-Token',

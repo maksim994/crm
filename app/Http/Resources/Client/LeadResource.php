@@ -27,6 +27,7 @@ class LeadResource extends JsonResource
             'lead_status_label' => $this->lead_status->label(),
             'city' => $this->city,
             'product_request' => $this->product_request,
+            'comment' => $this->comment,
             'sku_count' => $this->sku_count,
             'metrika_client_id' => $this->metrika_client_id,
             'utm_source' => $this->utm_source,

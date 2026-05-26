@@ -7,6 +7,7 @@
 | Endpoint | `http://localhost:8080/ingest/seolead` (prod — ваш домен) |
 | Метод | GET или POST |
 | Ответ | JSON `{ "id": "uuid" }` или plain text `uuid` при `Accept: text/plain` |
+| Доп. поля | `product` (запрос на продукт), `comment` (комментарий посетителя) — опционально |
 
 ## jQuery (форма Tilda)
 
@@ -27,6 +28,8 @@ $(document).ready(function () {
       phone: $('input.t447__input', form).val(),
       email: '',
       description: 'Связаться с нами',
+      product: '', // селектор поля «продукт», если есть
+      comment: '', // селектор поля «комментарий», если есть
       page_url: window.location.href,
       utm_source: '',
       utm_medium: '',
@@ -51,6 +54,8 @@ curl -X POST "http://localhost:8080/ingest/seolead" \
   -d "token=SITE_UUID:secret" \
   -d "phone=+79001112233" \
   -d "description=Тест" \
+  -d "product=Кровать Lux" \
+  -d "comment=Нужна доставка" \
   -d "metrika_client_id=17791064241773632"
 ```
 

@@ -47,6 +47,7 @@ interface LeadDetail {
   lead_status_label: string
   city: string | null
   product_request: string | null
+  comment: string | null
   sku_count: number | null
   advertising_channel: string | null
   landing_domain: string | null
@@ -86,6 +87,7 @@ const rows = computed(() => {
     { label: 'Рекламный канал', value: l.advertising_channel ?? '—' },
     { label: 'Город', value: l.city ?? '—' },
     { label: 'Запрос на продукт', value: l.product_request ?? '—' },
+    { label: 'Комментарий', value: l.comment ?? '—' },
     { label: 'Кол-во SKU', value: l.sku_count != null ? String(l.sku_count) : '—' },
     { label: 'Домен посадочной', value: l.landing_domain ?? '—' },
     { label: 'Client ID Метрики', value: l.metrika_client_id ?? '—' },

@@ -18,7 +18,7 @@ class SiteIntegration
         $lines = [
             'Endpoint: '.$url,
             'Метод: GET или POST',
-            'Параметры: token, phone, email, name, description, metrika_client_id, utm_*',
+            'Параметры: token, phone, email, name, description, product, comment, metrika_client_id, utm_*',
         ];
 
         if ($site) {

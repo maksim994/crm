@@ -58,6 +58,8 @@ curl -sS -X POST "$CRM/ingest/seolead" \
   -d "phone=+79001234567" \
   -d "name=Тест" \
   -d "description=Проверка интеграции" \
+  -d "product=Кровать Lux" \
+  -d "comment=Нужна доставка в Москву" \
   -d "page_url=https://example.com/landing"
 ```
 
@@ -121,6 +123,8 @@ curl -sS -X POST "$CRM/ingest/seolead" \
       token: SITE_TOKEN,
       phone: phone,
       description: 'Заявка с сайта',
+      product: this.product?.value.trim() || '',
+      comment: this.comment?.value.trim() || '',
       page_url: window.location.href,
       utm_source: new URLSearchParams(location.search).get('utm_source') || '',
       utm_medium: new URLSearchParams(location.search).get('utm_medium') || '',
@@ -197,6 +201,8 @@ $payload = [
     'email' => $email,
     'name' => trim((string) ($_POST['name'] ?? '')),
     'description' => trim((string) ($_POST['description'] ?? 'Заявка с сайта')),
+    'product' => trim((string) ($_POST['product'] ?? '')),
+    'comment' => trim((string) ($_POST['comment'] ?? '')),
     'page_url' => trim((string) ($_POST['page_url'] ?? '')),
     'metrika_client_id' => trim((string) ($_POST['metrika_client_id'] ?? '')),
     'utm_source' => trim((string) ($_POST['utm_source'] ?? '')),
@@ -343,6 +349,8 @@ curl -sS -X POST "https://ваш-сайт.ru/lead.php" \
 | `email` | да* | Email (*хотя бы одно из phone/email) |
 | `name` | нет | Имя |
 | `description` | нет | Текст заявки / название формы |
+| `product` | нет | Запрос на продукт |
+| `comment` | нет | Комментарий посетителя |
 | `metrika_client_id` | нет | `yaCounter.getClientID()` |
 | `page_url` | нет | URL страницы отправки |
 | `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `utm_campaign_first` | нет | UTM из URL |

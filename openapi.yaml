@@ -239,6 +239,14 @@ components:
           type: string
           description: Текст кнопки или назначение формы (form_description)
           example: "Связаться с нами в футере"
+        product:
+          type: string
+          description: Запрос на продукт (product_request)
+          example: "Кровать Lux"
+        comment:
+          type: string
+          description: Комментарий посетителя из формы
+          example: "Нужна доставка в Москву"
         page_url:
           type: string
           format: uri

@@ -26,6 +26,7 @@ class Lead extends Model
         'inn',
         'city',
         'product_request',
+        'comment',
         'sku_count',
         'manager_comment',
         'expected_amount',

@@ -34,6 +34,7 @@ class LeadResource extends JsonResource
             'inn' => $this->inn,
             'city' => $this->city,
             'product_request' => $this->product_request,
+            'comment' => $this->comment,
             'sku_count' => $this->sku_count,
             'expected_amount' => $this->expected_amount,
             'metrika_client_id' => $this->metrika_client_id,

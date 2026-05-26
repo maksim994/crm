@@ -109,6 +109,7 @@ class LeadResource extends Resource
                         Infolists\Components\TextEntry::make('inn')->label('ИНН'),
                         Infolists\Components\TextEntry::make('city')->label('Город'),
                         Infolists\Components\TextEntry::make('product_request')->label('Запрос'),
+                        Infolists\Components\TextEntry::make('comment')->label('Комментарий')->columnSpanFull(),
                         Infolists\Components\TextEntry::make('sku_count')->label('SKU'),
                         Infolists\Components\TextEntry::make('expected_amount')->label('Сумма'),
                     ])
