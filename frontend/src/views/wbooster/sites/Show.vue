@@ -85,6 +85,18 @@
           <code class="mt-1 block break-all rounded bg-gray-50 p-2 text-xs dark:bg-gray-800">{{ exampleUrl }}</code>
         </p>
       </div>
+
+      <div class="mt-6">
+        <diagnostics-panel
+          title="Проверка проекта"
+          :groups="diagnosticGroups"
+          :overall-status="diagnosticStatus"
+          :checked-at="diagnosticCheckedAt"
+          :loading="diagnosticsLoading"
+          :error="diagnosticsError"
+          @refresh="loadDiagnostics"
+        />
+      </div>
     </template>
   </admin-layout>
 </template>
@@ -95,6 +107,9 @@ import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import Button from '@/components/ui/Button.vue'
+import DiagnosticsPanel, {
+  type DiagnosticGroup,
+} from '@/components/wbooster/DiagnosticsPanel.vue'
 import { btnOutlineClass, btnPrimaryClass } from '@/constants/buttonClasses'
 import { api } from '@/api/client'
 
@@ -118,6 +133,11 @@ const integration = ref('')
 const ingestUrl = ref('')
 const token = ref('')
 const copyMessage = ref('')
+const diagnosticsLoading = ref(false)
+const diagnosticsError = ref<string | null>(null)
+const diagnosticGroups = ref<DiagnosticGroup[]>([])
+const diagnosticStatus = ref<string | null>(null)
+const diagnosticCheckedAt = ref<string | null>(null)
 
 const leadsLink = computed(() => {
   if (!site.value) {
@@ -146,6 +166,34 @@ function statusLabel(status: string): string {
     archived: 'Архив',
   }
   return map[status] ?? status
+}
+
+async function loadDiagnostics() {
+  if (!site.value) {
+    return
+  }
+
+  diagnosticsLoading.value = true
+  diagnosticsError.value = null
+
+  try {
+    const res = await api<{
+      status: string
+      checked_at: string
+      groups: DiagnosticGroup[]
+    }>(`/sites/${site.value.id}/diagnostics`)
+
+    diagnosticGroups.value = res.groups
+    diagnosticStatus.value = res.status
+    diagnosticCheckedAt.value = res.checked_at
+  } catch (err) {
+    diagnosticsError.value = err instanceof Error ? err.message : 'Ошибка диагностики'
+    diagnosticGroups.value = []
+    diagnosticStatus.value = null
+    diagnosticCheckedAt.value = null
+  } finally {
+    diagnosticsLoading.value = false
+  }
 }
 
 async function load() {
@@ -194,5 +242,6 @@ onMounted(async () => {
     router.replace({ query: {} })
   }
   await load()
+  await loadDiagnostics()
 })
 </script>

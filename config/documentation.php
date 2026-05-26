@@ -35,6 +35,12 @@ return [
             'title' => 'Проект',
             'documents' => [
                 [
+                    'slug' => 'lichnyj-kabinet',
+                    'path' => 'lichnyj-kabinet.md',
+                    'title' => 'Личный кабинет заказчика',
+                    'description' => 'Маршруты, навигация по проектам, доступ и API.',
+                ],
+                [
                     'slug' => 'proekt',
                     'path' => 'PROEKT.md',
                     'title' => 'Стек и архитектура',

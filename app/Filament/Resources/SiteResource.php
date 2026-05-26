@@ -54,6 +54,9 @@ class SiteResource extends Resource
                         Infolists\Components\TextEntry::make('name')->label('Название'),
                         Infolists\Components\TextEntry::make('domains')->label('Домены')->badge(),
                         Infolists\Components\TextEntry::make('metrika_counter_id')->label('Метрика'),
+                        Infolists\Components\TextEntry::make('metrika_brand_keywords')
+                            ->label('Ключевые слова бренда')
+                            ->formatStateUsing(fn (?array $state) => $state ? implode(', ', $state) : '—'),
                         Infolists\Components\TextEntry::make('timezone')->label('Часовой пояс'),
                         Infolists\Components\TextEntry::make('status')
                             ->label('Статус')

@@ -19,6 +19,7 @@ class Site extends Model
         'name',
         'domains',
         'metrika_counter_id',
+        'metrika_brand_keywords',
         'timezone',
         'token_hash',
         'status',
@@ -29,6 +30,7 @@ class Site extends Model
     {
         return [
             'domains' => 'array',
+            'metrika_brand_keywords' => 'array',
             'status' => SiteStatus::class,
         ];
     }

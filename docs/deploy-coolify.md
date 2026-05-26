@@ -69,9 +69,27 @@ php artisan migrate --force --no-interaction
 
 и `RUN_MIGRATIONS=false`.
 
-## 5. Queue worker
+## 5. Laravel scheduler (Scheduled Tasks)
 
-Inbound email и фоновые задачи (обогащение из Метрики, почта) требуют воркера:
+IMAP-почта, `leads:prune` и другие задачи из `bootstrap/app.php` работают через `php artisan schedule:run`.
+
+В Coolify: приложение → **Scheduled Tasks** → **New Scheduled Task**:
+
+| Поле | Значение |
+|------|----------|
+| **Name** | `Laravel scheduler` |
+| **Command** | `php artisan schedule:run` |
+| **Frequency** | `* * * * *` |
+| **Timeout (seconds)** | `300` |
+| **Container name** | web-контейнер CRM (основной, с Nginx) |
+
+Частота — **каждую минуту**. Интервал 5 минут для `mail:fetch-inbound` задаётся в коде Laravel, не в cron.
+
+Подробнее про IMAP: [integraciya-inbound-email.md](./integraciya-inbound-email.md) (шаг 5).
+
+## 6. Queue worker
+
+Inbound email (webhook) и фоновые задачи (обогащение из Метрики) могут требовать воркера:
 
 ```bash
 php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
@@ -79,7 +97,7 @@ php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
 
 Отдельный сервис в Coolify с тем же образом и env, команда выше.
 
-## 6. Проверка после деплоя
+## 7. Проверка после деплоя
 
 ```bash
 curl -sf https://crm.mv-deploy.ru/health
@@ -95,7 +113,7 @@ curl -X POST "https://crm.mv-deploy.ru/ingest/seolead" \
 
 Ожидается `201` и `{"id":"..."}`.
 
-## 7. Локальная проверка prod-образа
+## 8. Локальная проверка prod-образа
 
 ```bash
 cp .env.example .env.prod.local
@@ -107,7 +125,7 @@ docker compose -f docker-compose.prod.yml up -d
 curl -sf http://localhost:8080/health
 ```
 
-## 8. Отличия от dev (`docker-compose.yml`)
+## 9. Отличия от dev (`docker-compose.yml`)
 
 | | Dev | Prod (`Dockerfile.prod`) |
 |---|-----|--------------------------|
@@ -116,7 +134,7 @@ curl -sf http://localhost:8080/health
 | Nginx + PHP | 2 контейнера | 1 контейнер (supervisor) |
 | Composer | с dev | `--no-dev` |
 
-## 9. Чеклист staging
+## 10. Чеклист staging
 
 - [ ] Env-переменные **Runtime only** (см. §2)
 - [ ] На сервере ≥ **2 GB RAM** для первой сборки (gcc + npm)
@@ -126,6 +144,7 @@ curl -sf http://localhost:8080/health
 - [ ] POST `/ingest/seolead` создаёт лид
 - [ ] POST `/api/v1/leads/call?token=...` создаёт лид `call`
 - [ ] Redis доступен (rate limit, сессии)
-- [ ] Queue worker запущен (если используется почта)
+- [ ] Scheduled Task `php artisan schedule:run` каждую минуту (IMAP-почта, `leads:prune`)
+- [ ] Queue worker запущен (если используются очереди / webhook-почта через job)
 
 См. также [MVP-CHECKLIST.md](./MVP-CHECKLIST.md) (критерии ТЗ §14).

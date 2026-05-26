@@ -103,6 +103,10 @@ METRIKA_OAUTH_TOKEN=y0_AgAAAA...   # OAuth, право metrika:read
 
 Требуется **queue worker** (`php artisan queue:work redis`) на том же окружении, что и web.
 
+### Агрегаты для ЛК «Аналитика» (отдельно от enrich лида)
+
+Страница `/cabinet/projects/{siteId}/analytics` запрашивает **сводную статистику по счётчику** (каналы, поисковики, география, устройства) — без фильтра по `clientID`. Тот же OAuth и `metrika_counter_id` проекта. Ответы кэшируются в `metrika_report_cache` (4 ч). См. [TZ.md](./TZ.md) §6.5 и [lichnyj-kabinet.md](./lichnyj-kabinet.md).
+
 ---
 
 ## 7. Отладка запросов в Reporting API

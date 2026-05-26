@@ -5,10 +5,12 @@ use App\Http\Controllers\Api\Admin\AgencyClientController;
 use App\Http\Controllers\Api\Admin\ClientCabinetImpersonateController;
 use App\Http\Controllers\Api\Admin\ClientCabinetUserController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\DiagnosticsController;
 use App\Http\Controllers\Api\Admin\DocumentationController;
 use App\Http\Controllers\Api\Admin\LeadController;
 use App\Http\Controllers\Api\Admin\PlatformAdminUserController;
 use App\Http\Controllers\Api\Admin\SiteController;
+use App\Http\Controllers\Api\Client\AnalyticsController;
 use App\Http\Controllers\Api\Client\AuthController as ClientAuthController;
 use App\Http\Controllers\Api\Client\ImpersonateController;
 use App\Http\Controllers\Api\Client\LeadController as ClientLeadController;
@@ -26,6 +28,15 @@ Route::prefix('client')->group(function () {
         Route::get('leads/export', [ClientLeadController::class, 'export']);
         Route::get('leads', [ClientLeadController::class, 'index']);
         Route::get('leads/{lead}', [ClientLeadController::class, 'show']);
+
+        Route::prefix('projects/{site}/analytics')->group(function () {
+            Route::get('traffic-sources', [AnalyticsController::class, 'trafficSources']);
+            Route::get('search-engines', [AnalyticsController::class, 'searchEngines']);
+            Route::get('search-branded', [AnalyticsController::class, 'searchBranded']);
+            Route::get('search-non-branded', [AnalyticsController::class, 'searchNonBranded']);
+            Route::get('geography', [AnalyticsController::class, 'geography']);
+            Route::get('devices', [AnalyticsController::class, 'devices']);
+        });
     });
 });
 
@@ -36,6 +47,8 @@ Route::prefix('admin')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']);
         Route::get('dashboard', DashboardController::class);
+        Route::get('diagnostics', [DiagnosticsController::class, 'index']);
+        Route::get('sites/{site}/diagnostics', [DiagnosticsController::class, 'site']);
 
         Route::get('docs', [DocumentationController::class, 'index']);
         Route::get('docs/{slug}', [DocumentationController::class, 'show']);

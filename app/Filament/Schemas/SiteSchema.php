@@ -41,6 +41,11 @@ class SiteSchema
             Forms\Components\TextInput::make('metrika_counter_id')
                 ->label('ID счётчика Метрики')
                 ->maxLength(32),
+            Forms\Components\TagsInput::make('metrika_brand_keywords')
+                ->label('Ключевые слова бренда')
+                ->placeholder('ruflex, руфлекс')
+                ->helperText('Для отчётов «брендовый / небрендовый поиск» в ЛК. Фильтр по ym:s:searchPhrase.')
+                ->columnSpanFull(),
             Forms\Components\Select::make('timezone')
                 ->label('Часовой пояс')
                 ->options([

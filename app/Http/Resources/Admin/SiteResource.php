@@ -20,6 +20,7 @@ class SiteResource extends JsonResource
             'name' => $this->name,
             'domains' => $this->domains ?? [],
             'metrika_counter_id' => $this->metrika_counter_id,
+            'metrika_brand_keywords' => $this->metrika_brand_keywords ?? [],
             'timezone' => $this->timezone,
             'status' => $this->status->value,
             'email_inbound_address' => $this->email_inbound_address,

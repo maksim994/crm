@@ -269,6 +269,11 @@ const menuGroups = [
         path: "/admins",
       },
       {
+        icon: PlugInIcon,
+        name: "Диагностика",
+        path: "/diagnostics",
+      },
+      {
         icon: DocsIcon,
         name: "Документация",
         path: "/docs",

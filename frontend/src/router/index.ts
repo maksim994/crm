@@ -116,6 +116,12 @@ const router = createRouter({
       meta: { title: 'Редактирование администратора', requiresAuth: true },
     },
     {
+      path: '/diagnostics',
+      name: 'Diagnostics',
+      component: () => import('@/views/wbooster/Diagnostics.vue'),
+      meta: { title: 'Диагностика', requiresAuth: true },
+    },
+    {
       path: '/docs/:slug?',
       name: 'Docs',
       component: () => import('@/views/wbooster/docs/Show.vue'),

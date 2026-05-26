@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
+import { ensureSiteAccess } from '@cabinet/composables/useCabinetSites'
 import { api, ensureCsrf } from '@cabinet/api/client'
 
 interface CabinetUser {
@@ -25,6 +26,24 @@ const router = createRouter({
       name: 'Leads',
       component: () => import('@cabinet/views/leads/Index.vue'),
       meta: { title: 'Лиды', requiresAuth: true },
+    },
+    {
+      path: '/projects/:siteId/leads',
+      name: 'ProjectLeads',
+      component: () => import('@cabinet/views/projects/Leads.vue'),
+      meta: { title: 'Лиды и продажи', requiresAuth: true, requiresSite: true },
+    },
+    {
+      path: '/projects/:siteId/traffic',
+      name: 'ProjectTraffic',
+      component: () => import('@cabinet/views/projects/Traffic.vue'),
+      meta: { title: 'Трафик и лиды', requiresAuth: true, requiresSite: true },
+    },
+    {
+      path: '/projects/:siteId/analytics',
+      name: 'ProjectAnalytics',
+      component: () => import('@cabinet/views/projects/Analytics.vue'),
+      meta: { title: 'Аналитика', requiresAuth: true, requiresSite: true },
     },
     {
       path: '/leads/:id',
@@ -106,6 +125,18 @@ router.beforeEach(async (to) => {
 
   if (to.meta.guest && authenticated) {
     return { name: 'Leads' }
+  }
+
+  if (to.meta.requiresSite && authenticated) {
+    const siteId = to.params.siteId
+    if (typeof siteId !== 'string' || !siteId) {
+      return { name: 'Leads' }
+    }
+
+    const allowed = await ensureSiteAccess(siteId)
+    if (!allowed) {
+      return { name: 'Leads' }
+    }
   }
 })
 

@@ -53,15 +53,33 @@ INBOUND_IMAP_MARK_READ=true
 
 Пересоберите образ (нужно PHP **ext-imap** в `Dockerfile.prod`).
 
-### Шаг 5. Cron
+### Шаг 5. Cron (Scheduled Task в Coolify)
 
-В Coolify добавьте cron для контейнера web (или отдельного scheduler):
+В Coolify откройте приложение CRM → **Scheduled Tasks** → **New Scheduled Task** и заполните форму:
+
+| Поле | Значение | Комментарий |
+|------|----------|-------------|
+| **Name** | `Laravel scheduler` | Любое понятное имя |
+| **Command** | `php artisan schedule:run` | Рабочая директория в образе уже `/var/www/html` |
+| **Frequency** | `* * * * *` | **Каждую минуту** — так требует Laravel |
+| **Timeout (seconds)** | `300` | Достаточно для IMAP-опроса |
+| **Container name** | имя **web**-контейнера CRM | Основной контейнер приложения (Nginx + PHP), не queue worker |
+
+> **Важно:** в Coolify в поле **Frequency** указывается только cron-выражение (`* * * * *`), без команды.  
+> Команда — отдельно в поле **Command**. Не пишите туда строку вида `* * * * * cd /var/www/html && php artisan schedule:run`.
+
+Laravel сам решает, что запускать:
+
+- каждые **5 минут** — `mail:fetch-inbound` (если `INBOUND_IMAP_ENABLED=true`);
+- ежедневно в **03:00** — `leads:prune`.
+
+Эквивалент классического crontab на сервере:
 
 ```bash
 * * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Планировщик Laravel каждые **5 минут** вызывает `mail:fetch-inbound` (если `INBOUND_IMAP_ENABLED=true`).
+В Coolify перенаправление в `/dev/null` не нужно — его добавляет платформа.
 
 Ручная проверка:
 

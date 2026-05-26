@@ -87,12 +87,21 @@ class SiteController extends Controller
             'domains' => ['required', 'array', 'min:1'],
             'domains.*' => ['required', 'string', 'max:255'],
             'metrika_counter_id' => ['nullable', 'string', 'max:32'],
+            'metrika_brand_keywords' => ['nullable', 'array'],
+            'metrika_brand_keywords.*' => ['string', 'max:100'],
             'timezone' => ['required', 'string', 'max:64'],
             'status' => ['required', 'in:active,paused,archived'],
             'email_inbound_address' => ['nullable', 'email', 'max:255'],
         ]);
 
         $data['domains'] = array_values(array_filter(array_map('trim', $data['domains'])));
+
+        if (array_key_exists('metrika_brand_keywords', $data)) {
+            $data['metrika_brand_keywords'] = array_values(array_filter(array_map(
+                static fn ($keyword) => trim((string) $keyword),
+                $data['metrika_brand_keywords'] ?? [],
+            )));
+        }
 
         if (! empty($data['email_inbound_address'])) {
             $data['email_inbound_address'] = strtolower(trim((string) $data['email_inbound_address']));

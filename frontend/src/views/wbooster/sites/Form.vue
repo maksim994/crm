@@ -42,6 +42,16 @@
             <option value="archived">Архив</option>
           </FormSelect>
         </div>
+        <FormTextarea
+          v-model="brandKeywordsText"
+          label="Ключевые слова бренда (для аналитики)"
+          id="site-brand-keywords"
+          :rows="2"
+          placeholder="ruflex&#10;руфлекс"
+        />
+        <p class="-mt-3 text-sm text-gray-500 dark:text-gray-400">
+          Нужны для отчётов «брендовый / небрендовый поиск» в ЛК. По одному слову или фразе в строке.
+        </p>
         <FormInput v-model="form.timezone" label="Timezone" id="site-timezone" />
         <FormInput
           v-model="form.email_inbound_address"
@@ -87,11 +97,13 @@ const tokenAlert = ref('')
 const integration = ref('')
 const clients = ref<{ id: string; name: string }[]>([])
 const domainsText = ref('')
+const brandKeywordsText = ref('')
 
 const form = ref({
   agency_client_id: '',
   name: '',
   metrika_counter_id: '',
+  metrika_brand_keywords: [] as string[],
   timezone: 'Europe/Moscow',
   status: 'active',
   email_inbound_address: '',
@@ -116,6 +128,7 @@ onMounted(async () => {
   )
   Object.assign(form.value, res.data)
   domainsText.value = (res.data.domains || []).join('\n')
+  brandKeywordsText.value = (res.data.metrika_brand_keywords || []).join('\n')
   integration.value = res.integration
 })
 
@@ -126,6 +139,10 @@ async function submit() {
     domains: domainsText.value
       .split('\n')
       .map((d) => d.trim())
+      .filter(Boolean),
+    metrika_brand_keywords: brandKeywordsText.value
+      .split('\n')
+      .map((keyword) => keyword.trim())
       .filter(Boolean),
   }
   try {

@@ -41,12 +41,16 @@ class DemoDataSeeder extends Seeder
             [
                 'domains' => ['ruflex-pro.ru'],
                 'metrika_counter_id' => '57691633',
+                'metrika_brand_keywords' => ['ruflex', 'руфлекс'],
                 'timezone' => 'Europe/Moscow',
                 'token_hash' => '',
                 'status' => SiteStatus::Active,
             ],
         );
-        $ruflex->update(['email_inbound_address' => InboundEmailAddress::forSite($ruflex)]);
+        $ruflex->update([
+            'email_inbound_address' => InboundEmailAddress::forSite($ruflex),
+            'metrika_brand_keywords' => ['ruflex', 'руфлекс'],
+        ]);
         self::$ruflexToken = $this->ensureSiteToken($ruflex);
 
         $testLp = Site::query()->firstOrCreate(

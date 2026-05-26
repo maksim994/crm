@@ -21,6 +21,64 @@ class InboundImapMailbox
     }
 
     /**
+     * @return array{ok: bool, message: string, hint?: string}
+     */
+    public function testConnection(): array
+    {
+        if (! (bool) config('crm.inbound_imap.enabled')) {
+            return [
+                'ok' => false,
+                'message' => 'IMAP отключён (INBOUND_IMAP_ENABLED=false)',
+            ];
+        }
+
+        if (! filled(config('crm.inbound_imap.username')) || ! filled(config('crm.inbound_imap.password'))) {
+            return [
+                'ok' => false,
+                'message' => 'Не заданы INBOUND_IMAP_USERNAME или INBOUND_IMAP_PASSWORD',
+            ];
+        }
+
+        if (! function_exists('imap_open')) {
+            return [
+                'ok' => false,
+                'message' => 'PHP ext-imap не установлен',
+                'hint' => 'Установите ext-imap в Docker-образ',
+            ];
+        }
+
+        $mailbox = $this->mailboxConnectionString();
+        $inbox = @imap_open(
+            $mailbox,
+            (string) config('crm.inbound_imap.username'),
+            (string) config('crm.inbound_imap.password'),
+            OP_READONLY,
+            1,
+        );
+
+        if ($inbox === false) {
+            $error = imap_last_error() ?: 'Неизвестная ошибка IMAP';
+
+            return [
+                'ok' => false,
+                'message' => 'Не удалось подключиться: '.$error,
+                'hint' => 'Проверьте host/port/encryption и пароль',
+            ];
+        }
+
+        $status = @imap_status($inbox, $mailbox, SA_MESSAGES);
+        imap_close($inbox);
+
+        $messages = is_object($status) ? ($status->messages ?? null) : null;
+        $suffix = $messages !== null ? " (писем в папке: {$messages})" : '';
+
+        return [
+            'ok' => true,
+            'message' => 'Подключение к '.config('crm.inbound_imap.host').$suffix,
+        ];
+    }
+
+    /**
      * @return array{processed: int, skipped: int, failed: int}
      */
     public function fetchUnread(): array
