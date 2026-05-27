@@ -11,7 +11,43 @@
         <router-link to="/sites" :class="btnOutlineClass">К списку</router-link>
       </div>
 
-      <div class="mb-6 grid gap-4 lg:grid-cols-2">
+      <div class="mb-6 grid gap-4 lg:grid-cols-2 lg:items-start">
+        <div
+          class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]"
+        >
+          <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Токен интеграции</h3>
+          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            Используется в формах, webhook и скрипте wbooster.js.
+          </p>
+
+          <code
+            v-if="token"
+            class="mb-4 block break-all rounded-lg bg-gray-50 p-4 text-sm text-gray-800 dark:bg-gray-800 dark:text-white"
+          >{{ token }}</code>
+
+          <p v-else class="mb-4 text-sm text-amber-600 dark:text-amber-400">
+            Нажмите «Перевыпустить токен», чтобы сохранить и показывать его здесь.
+          </p>
+
+          <div class="flex flex-wrap gap-2">
+            <Button v-if="token" type="button" size="sm" @click="copyToken">Скопировать</Button>
+            <Button type="button" variant="warning" size="sm" @click="regenerate">Перевыпустить токен</Button>
+          </div>
+          <p v-if="copyMessage" class="mt-2 text-sm text-success-600">{{ copyMessage }}</p>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+          <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Скрипт подстановки почт</h3>
+          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+            Вставьте на site.ru. Скрипт сам определяет источник визита и подставляет почту из настроек проекта.
+          </p>
+          <pre class="mb-3 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-800">{{ embedScriptTagDisplay }}</pre>
+          <Button v-if="token" type="button" size="sm" @click="copyEmbedScript">Скопировать скрипт с токеном</Button>
+          <p v-if="embedCopyMessage" class="mt-2 text-sm text-success-600">{{ embedCopyMessage }}</p>
+        </div>
+      </div>
+
+      <div class="mb-6">
         <div
           class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]"
         >
@@ -55,56 +91,22 @@
             </div>
           </dl>
         </div>
-
-        <div
-          class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]"
-        >
-          <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Токен интеграции</h3>
-          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-            Токен хранится в зашифрованном виде и показывается только сразу после создания проекта или
-            перевыпуска. Сохраните его в настройках сайта.
-          </p>
-
-          <div
-            v-if="token"
-            class="mb-4 rounded-lg bg-success-50 p-4 dark:bg-success-500/10"
-          >
-            <p class="mb-2 text-xs font-medium uppercase tracking-wide text-success-700 dark:text-success-400">
-              Текущий токен (скопируйте сейчас)
-            </p>
-            <code class="block break-all text-sm text-gray-800 dark:text-white">{{ token }}</code>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <Button type="button" size="sm" @click="copyToken">Скопировать</Button>
-            </div>
-          </div>
-
-          <p v-else class="mb-4 text-sm text-gray-500">Токен не отображается. Перевыпустите, если нужен новый.</p>
-
-          <Button type="button" variant="warning" @click="regenerate">Перевыпустить токен</Button>
-          <p v-if="copyMessage" class="mt-2 text-sm text-success-600">{{ copyMessage }}</p>
-        </div>
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Скрипт подстановки почт</h3>
-        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-          Вставьте на site.ru. Скрипт сам определяет источник визита и подставляет почту из настроек проекта:
-          реклама → основная, поиск (Google/Yandex) → SEO, прямой заход → «остальные».
-          Подставьте токен из блока выше вместо <code>SITE_TOKEN</code>.
-        </p>
-        <pre class="mb-3 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-800">{{ embedScriptTag }}</pre>
-        <Button v-if="token" type="button" size="sm" @click="copyEmbedScript">Скопировать скрипт с токеном</Button>
-        <p v-if="embedCopyMessage" class="mt-2 text-sm text-success-600">{{ embedCopyMessage }}</p>
-      </div>
-
-      <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 class="mb-4 font-semibold text-gray-800 dark:text-white">Интеграция</h3>
-        <pre class="mb-4 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-800">{{ integration }}</pre>
-        <p v-if="exampleUrl" class="text-sm text-gray-500">
-          Пример:
-          <code class="mt-1 block break-all rounded bg-gray-50 p-2 text-xs dark:bg-gray-800">{{ exampleUrl }}</code>
-        </p>
-      </div>
+      <site-integration-guide
+        v-if="ingestUrl"
+        :ingest-url="ingestUrl"
+        :call-webhook-url="callWebhookUrl"
+        :inbound-email-webhook-url="inboundEmailWebhookUrl"
+        :embed-script-url="embedScriptUrl"
+        :example-url="exampleUrl"
+        :site-name="site.name"
+        :domains="site.domains"
+        :metrika-counter-id="site.metrika_counter_id"
+        :email-ads="site.email_inbound_address"
+        :email-seo="site.email_inbound_seo"
+        :email-other="site.email_inbound_other"
+      />
 
       <div class="mt-6">
         <diagnostics-panel
@@ -130,6 +132,7 @@ import Button from '@/components/ui/Button.vue'
 import DiagnosticsPanel, {
   type DiagnosticGroup,
 } from '@/components/wbooster/DiagnosticsPanel.vue'
+import SiteIntegrationGuide from '@/components/wbooster/SiteIntegrationGuide.vue'
 import { btnOutlineClass, btnPrimaryClass } from '@/constants/buttonClasses'
 import { api } from '@/api/client'
 
@@ -151,9 +154,18 @@ const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const site = ref<SiteDetail | null>(null)
-const integration = ref('')
 const ingestUrl = ref('')
+const callWebhookUrl = ref('')
+const inboundEmailWebhookUrl = ref('')
+const embedScriptUrl = ref('')
 const embedScriptTag = ref('')
+const embedScriptTagDisplay = computed(() => {
+  if (token.value) {
+    return embedScriptTag.value.replace('SITE_TOKEN', token.value)
+  }
+
+  return embedScriptTag.value
+})
 const token = ref('')
 const copyMessage = ref('')
 const embedCopyMessage = ref('')
@@ -240,14 +252,22 @@ async function load() {
   try {
     const res = await api<{
       data: SiteDetail
-      integration: string
+      token: string | null
       ingest_url: string
+      call_webhook_url: string
+      inbound_email_webhook_url: string
+      embed_script_url: string
       embed_script_tag: string
     }>(`/sites/${route.params.id}`)
     site.value = res.data
-    integration.value = res.integration
     ingestUrl.value = res.ingest_url
+    callWebhookUrl.value = res.call_webhook_url
+    inboundEmailWebhookUrl.value = res.inbound_email_webhook_url
+    embedScriptUrl.value = res.embed_script_url
     embedScriptTag.value = res.embed_script_tag
+    if (res.token) {
+      token.value = res.token
+    }
   } finally {
     loading.value = false
   }
@@ -257,12 +277,12 @@ async function regenerate() {
   if (!confirm('Перевыпустить токен? Старый перестанет работать.')) {
     return
   }
-  const res = await api<{ token: string; integration: string }>(
+  const res = await api<{ token: string; embed_script_tag: string }>(
     `/sites/${route.params.id}/regenerate-token`,
     { method: 'POST' },
   )
   token.value = res.token
-  integration.value = res.integration
+  embedScriptTag.value = res.embed_script_tag
   copyMessage.value = ''
 }
 

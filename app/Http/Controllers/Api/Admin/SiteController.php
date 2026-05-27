@@ -30,12 +30,14 @@ class SiteController extends Controller
 
         return response()->json([
             'data' => new SiteResource($site),
+            'token' => $site->plainToken(),
             'integration' => SiteIntegration::instructions($site),
             'ingest_url' => SiteIntegration::ingestUrl(),
             'call_webhook_url' => SiteIntegration::callWebhookUrl(),
             'inbound_email' => $site->email_inbound_address,
             'embed_script_url' => SiteIntegration::embedScriptUrl(),
-            'embed_script_tag' => SiteIntegration::embedScriptTag(),
+            'inbound_email_webhook_url' => SiteIntegration::inboundEmailWebhookUrl(),
+            'embed_script_tag' => SiteIntegration::embedScriptTag($site->plainToken()),
         ]);
     }
 
@@ -74,6 +76,7 @@ class SiteController extends Controller
         return response()->json([
             'token' => $token,
             'integration' => SiteIntegration::instructions($site),
+            'embed_script_tag' => SiteIntegration::embedScriptTag($token),
             'site' => new SiteResource($site->load('agencyClient')),
         ]);
     }

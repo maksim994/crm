@@ -55,6 +55,8 @@
             <th class="p-4 text-left">Заказчик</th>
             <th class="p-4 text-left">Проект</th>
             <th class="p-4 text-left">Телефон</th>
+            <th class="p-4 text-left">Тип</th>
+            <th class="p-4 text-left">Канал</th>
             <th class="p-4 text-left">Статус</th>
             <th class="p-4"></th>
           </tr>
@@ -65,13 +67,17 @@
             <td class="p-4">{{ lead.site?.agency_client?.name }}</td>
             <td class="p-4">{{ lead.site?.name }}</td>
             <td class="p-4">{{ lead.phone || '—' }}</td>
+            <td class="p-4">
+              <span :class="channelBadgeClass(lead.channel)">{{ lead.channel_label }}</span>
+            </td>
+            <td class="p-4">{{ lead.advertising_channel || '—' }}</td>
             <td class="p-4">{{ lead.lead_status_label }}</td>
             <td class="p-4 text-right">
               <router-link :to="`/leads/${lead.id}`" class="text-brand-500">Открыть</router-link>
             </td>
           </tr>
           <tr v-if="!leads.length">
-            <td colspan="6" class="p-8 text-center text-gray-500">Нет лидов по выбранным фильтрам</td>
+            <td colspan="8" class="p-8 text-center text-gray-500">Нет лидов по выбранным фильтрам</td>
           </tr>
         </tbody>
       </table>
@@ -92,6 +98,9 @@ import { api, type Paginated } from '@/api/client'
 interface Lead {
   id: string
   phone: string | null
+  channel: string
+  channel_label: string
+  advertising_channel: string | null
   lead_status_label: string
   created_at: string
   site?: { name: string; agency_client?: { name: string } }
@@ -129,6 +138,17 @@ const filteredSites = computed(() => {
 function formatDate(iso: string) {
   if (!iso) return '—'
   return new Date(iso).toLocaleString('ru-RU')
+}
+
+function channelBadgeClass(channel: string): string {
+  const base = 'rounded-full px-2 py-0.5 text-xs'
+  const map: Record<string, string> = {
+    form: `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`,
+    call: `${base} bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400`,
+    email: `${base} bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400`,
+    manual: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`,
+  }
+  return map[channel] ?? `${base} bg-gray-100 text-gray-600`
 }
 
 function queryString(): string {

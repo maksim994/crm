@@ -32,9 +32,7 @@
             <td class="p-4">{{ client.inn || '—' }}</td>
             <td class="p-4">{{ client.sites_count ?? 0 }}</td>
             <td class="p-4">
-              <span class="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-600">
-                {{ client.status === 'active' ? 'Активен' : 'Архив' }}
-              </span>
+              <span :class="clientStatusBadgeClass(client.status)">{{ statusLabel(client.status) }}</span>
             </td>
             <td class="p-4 text-right space-x-3">
               <router-link :to="`/clients/${client.id}`" class="text-sm text-brand-500 hover:underline">
@@ -76,6 +74,17 @@ const clients = ref<Client[]>([])
 async function load() {
   const res = await api<Paginated<Client>>('/clients')
   clients.value = res.data
+}
+
+function statusLabel(status: string): string {
+  return status === 'active' ? 'Активен' : 'Архив'
+}
+
+function clientStatusBadgeClass(status: string): string {
+  const base = 'rounded-full px-2 py-0.5 text-xs'
+  return status === 'active'
+    ? `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`
+    : `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`
 }
 
 async function remove(id: string) {

@@ -24,7 +24,9 @@
               </router-link>
             </td>
             <td class="p-4 text-sm">{{ (site.domains || []).join(', ') }}</td>
-            <td class="p-4">{{ site.status }}</td>
+            <td class="p-4">
+              <span :class="statusBadgeClass(site.status)">{{ statusLabel(site.status) }}</span>
+            </td>
             <td class="p-4 text-right space-x-3">
               <router-link :to="`/sites/${site.id}`" class="text-sm text-brand-500">Открыть</router-link>
               <router-link :to="`/sites/${site.id}/edit`" class="text-sm text-gray-500 hover:text-brand-500">Изменить</router-link>
@@ -51,6 +53,25 @@ interface Site {
 }
 
 const sites = ref<Site[]>([])
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    active: 'Активен',
+    paused: 'Пауза',
+    archived: 'Архив',
+  }
+  return map[status] ?? status
+}
+
+function statusBadgeClass(status: string): string {
+  const base = 'rounded-full px-2 py-0.5 text-xs'
+  const map: Record<string, string> = {
+    active: `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`,
+    paused: `${base} bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400`,
+    archived: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`,
+  }
+  return map[status] ?? `${base} bg-gray-100 text-gray-600`
+}
 
 async function load() {
   const res = await api<Paginated<Site>>('/sites')

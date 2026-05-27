@@ -26,7 +26,9 @@
           <dl class="space-y-3 text-sm">
             <div class="flex justify-between gap-4">
               <dt class="text-gray-500">Статус</dt>
-              <dd>{{ statusLabel(client.status) }}</dd>
+              <dd>
+                <span :class="clientStatusBadgeClass(client.status)">{{ statusLabel(client.status) }}</span>
+              </dd>
             </div>
             <div class="flex justify-between gap-4">
               <dt class="text-gray-500">ИНН</dt>
@@ -102,7 +104,9 @@
                   </router-link>
                 </td>
                 <td class="p-4">{{ (site.domains || []).join(', ') || '—' }}</td>
-                <td class="p-4">{{ siteStatusLabel(site.status) }}</td>
+                <td class="p-4">
+                  <span :class="siteStatusBadgeClass(site.status)">{{ siteStatusLabel(site.status) }}</span>
+                </td>
                 <td class="p-4 text-right">{{ site.leads_count ?? 0 }}</td>
               </tr>
             </tbody>
@@ -239,7 +243,14 @@ const createSiteLink = computed(() => `/sites/create?agency_client_id=${client.v
 const hasActiveCabinetUsers = computed(() => users.value.some((u) => u.is_active))
 
 function statusLabel(status: string): string {
-  return status === 'active' ? 'Активен' : 'В архиве'
+  return status === 'active' ? 'Активен' : 'Архив'
+}
+
+function clientStatusBadgeClass(status: string): string {
+  const base = 'rounded-full px-2 py-0.5 text-xs'
+  return status === 'active'
+    ? `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`
+    : `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`
 }
 
 function siteStatusLabel(status: string): string {
@@ -249,6 +260,16 @@ function siteStatusLabel(status: string): string {
     archived: 'Архив',
   }
   return map[status] ?? status
+}
+
+function siteStatusBadgeClass(status: string): string {
+  const base = 'rounded-full px-2 py-0.5 text-xs'
+  const map: Record<string, string> = {
+    active: `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`,
+    paused: `${base} bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400`,
+    archived: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`,
+  }
+  return map[status] ?? `${base} bg-gray-100 text-gray-600`
 }
 
 function accessLabel(user: CabinetUser): string {

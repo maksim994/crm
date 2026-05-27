@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class Site extends Model
 {
@@ -85,9 +87,9 @@ class Site extends Model
     }
 
     /**
-     * Выдаёт токен вида {uuid}:{secret} и сохраняет sha256-хэш в БД.
+     * Выдаёт токен вида {uuid}:{secret}, сохраняет sha256-хэш и зашифрованную копию для админки.
      *
-     * @return string Plaintext token (показать администратору один раз)
+     * @return string Plaintext token
      */
     public function issueToken(): string
     {
@@ -96,9 +98,28 @@ class Site extends Model
 
         $this->forceFill([
             'token_hash' => self::hashToken($token),
+            'token_encrypted' => Crypt::encryptString($token),
         ])->save();
 
         return $token;
+    }
+
+    public function plainToken(): ?string
+    {
+        if (blank($this->token_encrypted)) {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($this->token_encrypted);
+        } catch (DecryptException) {
+            return null;
+        }
+    }
+
+    public function hasIssuedToken(): bool
+    {
+        return filled($this->token_hash);
     }
 
     public static function findByToken(string $token): ?self

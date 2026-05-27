@@ -65,9 +65,14 @@ class SiteResource extends Resource
                                 SiteStatus::Paused => 'Приостановлен',
                                 SiteStatus::Archived => 'В архиве',
                             }),
-                        Infolists\Components\TextEntry::make('email_inbound_address')->label('Inbound email'),
-                        Infolists\Components\TextEntry::make('email_inbound_seo')->label('Email SEO'),
-                        Infolists\Components\TextEntry::make('email_inbound_other')->label('Email (остальные)'),
+                        Infolists\Components\TextEntry::make('integration_token')
+                            ->label('Токен интеграции')
+                            ->state(fn (Site $record) => $record->plainToken() ?? 'Перевыпустите токен, чтобы отобразить')
+                            ->copyable(fn (Site $record) => filled($record->plainToken()))
+                            ->columnSpanFull(),
+                        Infolists\Components\TextEntry::make('email_inbound_address')->label('Почта (реклама)'),
+                        Infolists\Components\TextEntry::make('email_inbound_seo')->label('Почта (SEO / поиск)'),
+                        Infolists\Components\TextEntry::make('email_inbound_other')->label('Почта (прямые заходы)'),
                     ])
                     ->columns(2),
                 Infolists\Components\Section::make('Интеграция')
