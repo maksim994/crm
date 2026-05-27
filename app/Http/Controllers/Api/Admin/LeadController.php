@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
+use App\Exceptions\Ingest\SiteNotAcceptingLeadsException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreLeadRequest;
 use App\Http\Resources\Admin\LeadResource;
 use App\Models\Lead;
+use App\Models\Site;
+use App\Services\LeadIngestionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -31,6 +36,21 @@ class LeadController extends Controller
         $lead->load('site.agencyClient');
 
         return new LeadResource($lead);
+    }
+
+    public function store(StoreLeadRequest $request, LeadIngestionService $ingestion): JsonResponse|LeadResource
+    {
+        $site = Site::query()->findOrFail($request->validated('site_id'));
+
+        try {
+            $lead = $ingestion->createManual($site, $request->validated());
+        } catch (SiteNotAcceptingLeadsException) {
+            return response()->json(['message' => 'Site is not accepting leads'], 403);
+        }
+
+        return (new LeadResource($lead->load('site.agencyClient')))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function update(Request $request, Lead $lead): LeadResource

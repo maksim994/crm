@@ -157,6 +157,47 @@ class LeadIngestionService
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function createManual(Site $site, array $payload): Lead
+    {
+        if (! $site->acceptsLeads()) {
+            throw new SiteNotAcceptingLeadsException($site);
+        }
+
+        $data = $this->validateManualPayload($payload);
+        $phone = $data['phone'] ?? null;
+        $email = isset($data['email']) ? strtolower((string) $data['email']) : null;
+
+        return $this->createLead($site, [
+            'channel' => LeadChannel::Manual,
+            'phone' => $phone,
+            'email' => $email,
+            'contact_name' => $data['contact_name'] ?? null,
+            'form_description' => $data['form_description'] ?? null,
+            'comment' => $data['comment'] ?? null,
+            'product_request' => $data['product_request'] ?? null,
+            'lead_status' => LeadStatus::NotProcessed,
+            'metrika_client_id' => $data['metrika_client_id'] ?? null,
+            'utm_source' => $data['utm_source'] ?? null,
+            'utm_medium' => $data['utm_medium'] ?? null,
+            'utm_campaign' => $data['utm_campaign'] ?? null,
+            'utm_term' => $data['utm_term'] ?? null,
+            'utm_content' => $data['utm_content'] ?? null,
+            'utm_campaign_first' => $data['utm_campaign_first'] ?? null,
+            'advertising_channel' => $this->advertisingChannelResolver->resolve(
+                LeadChannel::Manual,
+                $data['utm_medium'] ?? null,
+                $data['utm_source'] ?? null,
+                $data['metrika_client_id'] ?? null,
+            ),
+            'is_duplicate' => $this->duplicateLeadDetector->isDuplicate($site, $phone, $email),
+            'raw_payload' => ['source' => 'manual', 'payload' => $payload],
+            'created_at' => now(),
+        ]);
+    }
+
     public function resolveSite(string $token, ?string $visitorIp = null): Site
     {
         $token = trim($token);
@@ -275,6 +316,38 @@ class LeadIngestionService
         }
 
         return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function validateManualPayload(array $payload): array
+    {
+        $validator = Validator::make($payload, [
+            'phone' => ['nullable', 'string', 'max:32', 'required_without:email'],
+            'email' => ['nullable', 'email', 'max:255', 'required_without:phone'],
+            'contact_name' => ['nullable', 'string', 'max:255'],
+            'form_description' => ['nullable', 'string', 'max:5000'],
+            'comment' => ['nullable', 'string', 'max:5000'],
+            'product_request' => ['nullable', 'string', 'max:255'],
+            'metrika_client_id' => ['nullable', 'string', 'max:64'],
+            'utm_source' => ['nullable', 'string', 'max:255'],
+            'utm_medium' => ['nullable', 'string', 'max:255'],
+            'utm_campaign' => ['nullable', 'string', 'max:255'],
+            'utm_term' => ['nullable', 'string', 'max:255'],
+            'utm_content' => ['nullable', 'string', 'max:255'],
+            'utm_campaign_first' => ['nullable', 'string', 'max:255'],
+        ], [
+            'phone.required_without' => 'Укажите телефон или email.',
+            'email.required_without' => 'Укажите телефон или email.',
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        return $validator->validated();
     }
 
     private function extractDomain(?string $pageUrl): ?string

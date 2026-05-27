@@ -16,7 +16,12 @@ class MetrikaTrafficSourceMapperTest extends TestCase
         $result = $mapper->toAdvertisingChannel(new MetrikaVisitAttribution(
             trafficSourceId: 'ad',
             trafficSourceName: 'Рекламный трафик',
+            utmSource: null,
+            utmMedium: null,
             utmCampaign: null,
+            utmTerm: null,
+            utmContent: null,
+            utmCampaignFirst: null,
         ));
 
         $this->assertSame(AdvertisingChannelResolver::ADVERTISING, $result);
@@ -29,7 +34,12 @@ class MetrikaTrafficSourceMapperTest extends TestCase
         $result = $mapper->toAdvertisingChannel(new MetrikaVisitAttribution(
             trafficSourceId: 'organic',
             trafficSourceName: 'Переходы из поисковых систем',
+            utmSource: null,
+            utmMedium: null,
             utmCampaign: null,
+            utmTerm: null,
+            utmContent: null,
+            utmCampaignFirst: null,
         ));
 
         $this->assertSame(AdvertisingChannelResolver::NO_DATA, $result);

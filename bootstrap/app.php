@@ -31,6 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('routes/ingest.php'));
 
             \Illuminate\Support\Facades\Route::middleware('api')
+                ->middleware('throttle:ingest')
+                ->prefix('embed')
+                ->group(base_path('routes/embed.php'));
+
+            \Illuminate\Support\Facades\Route::middleware('api')
                 ->prefix('api/v1')
                 ->group(base_path('routes/api_v1.php'));
         },

@@ -177,7 +177,15 @@ class MetrikaReportingClient
         $query = [
             'ids' => trim($counterId),
             'metrics' => 'ym:s:visits',
-            'dimensions' => 'ym:s:trafficSource,ym:s:lastUTMCampaign',
+            'dimensions' => implode(',', [
+                'ym:s:trafficSource',
+                'ym:s:lastUTMSource',
+                'ym:s:lastUTMMedium',
+                'ym:s:lastUTMCampaign',
+                'ym:s:lastUTMTerm',
+                'ym:s:lastUTMContent',
+                'ym:s:firstUTMCampaign',
+            ]),
             'filters' => "ym:s:clientID=='{$escapedClientId}'",
             'date1' => $dateString,
             'date2' => $dateString,
@@ -275,7 +283,12 @@ class MetrikaReportingClient
                     'counter_id' => $counterId,
                     'traffic_source_id' => $attribution->trafficSourceId,
                     'traffic_source_name' => $attribution->trafficSourceName,
+                    'utm_source' => $attribution->utmSource,
+                    'utm_medium' => $attribution->utmMedium,
                     'utm_campaign' => $attribution->utmCampaign,
+                    'utm_term' => $attribution->utmTerm,
+                    'utm_content' => $attribution->utmContent,
+                    'utm_campaign_first' => $attribution->utmCampaignFirst,
                 ]);
             }
 
@@ -347,16 +360,45 @@ class MetrikaReportingClient
         }
 
         $traffic = $dimensions[0] ?? [];
-        $utm = $dimensions[1] ?? [];
+        $utmSource = $dimensions[1] ?? [];
+        $utmMedium = $dimensions[2] ?? [];
+        $utmCampaign = $dimensions[3] ?? [];
+        $utmTerm = $dimensions[4] ?? [];
+        $utmContent = $dimensions[5] ?? [];
+        $utmCampaignFirst = $dimensions[6] ?? [];
 
         $trafficId = is_array($traffic) ? ($traffic['id'] ?? null) : null;
         $trafficName = is_array($traffic) ? ($traffic['name'] ?? null) : null;
-        $utmCampaign = is_array($utm) ? ($utm['name'] ?? $utm['id'] ?? null) : null;
 
         return new MetrikaVisitAttribution(
             trafficSourceId: is_string($trafficId) ? $trafficId : null,
             trafficSourceName: is_string($trafficName) ? $trafficName : null,
-            utmCampaign: is_string($utmCampaign) ? $utmCampaign : null,
+            utmSource: $this->dimensionValue($utmSource),
+            utmMedium: $this->dimensionValue($utmMedium),
+            utmCampaign: $this->dimensionValue($utmCampaign),
+            utmTerm: $this->dimensionValue($utmTerm),
+            utmContent: $this->dimensionValue($utmContent),
+            utmCampaignFirst: $this->dimensionValue($utmCampaignFirst),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>|mixed  $dimension
+     */
+    private function dimensionValue(mixed $dimension): ?string
+    {
+        if (! is_array($dimension)) {
+            return null;
+        }
+
+        $value = $dimension['name'] ?? $dimension['id'] ?? null;
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value !== '' && $value !== '(none)' ? $value : null;
     }
 }

@@ -67,7 +67,17 @@ class SiteSchema
                 ->default(SiteStatus::Active->value)
                 ->required(),
             Forms\Components\TextInput::make('email_inbound_address')
-                ->label('Email для заявок (inbound)')
+                ->label('Почта (реклама)')
+                ->email()
+                ->maxLength(255)
+                ->columnSpanFull(),
+            Forms\Components\TextInput::make('email_inbound_seo')
+                ->label('Почта (SEO / поиск)')
+                ->email()
+                ->maxLength(255)
+                ->columnSpanFull(),
+            Forms\Components\TextInput::make('email_inbound_other')
+                ->label('Почта (прямые заходы)')
                 ->email()
                 ->maxLength(255)
                 ->columnSpanFull(),

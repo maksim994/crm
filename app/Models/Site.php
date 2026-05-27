@@ -24,7 +24,41 @@ class Site extends Model
         'token_hash',
         'status',
         'email_inbound_address',
+        'email_inbound_seo',
+        'email_inbound_other',
     ];
+
+    /**
+     * @return list<string>
+     */
+    public function inboundEmailAddresses(): array
+    {
+        return array_values(array_filter(array_map(
+            static fn (?string $email) => $email !== null ? strtolower(trim($email)) : null,
+            [
+                $this->email_inbound_address,
+                $this->email_inbound_seo,
+                $this->email_inbound_other,
+            ],
+        )));
+    }
+
+    public static function findByInboundEmail(string $address): ?self
+    {
+        $address = strtolower(trim($address));
+
+        if ($address === '') {
+            return null;
+        }
+
+        return static::query()
+            ->where(function ($query) use ($address) {
+                $query->whereRaw('LOWER(email_inbound_address) = ?', [$address])
+                    ->orWhereRaw('LOWER(email_inbound_seo) = ?', [$address])
+                    ->orWhereRaw('LOWER(email_inbound_other) = ?', [$address]);
+            })
+            ->first();
+    }
 
     protected function casts(): array
     {

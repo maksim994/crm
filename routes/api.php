@@ -63,6 +63,7 @@ Route::prefix('admin')->group(function () {
         Route::post('sites/{site}/regenerate-token', [SiteController::class, 'regenerateToken'])->name('sites.regenerate-token');
 
         Route::get('leads', [LeadController::class, 'index']);
+        Route::post('leads', [LeadController::class, 'store']);
         Route::get('leads/{lead}', [LeadController::class, 'show']);
         Route::put('leads/{lead}', [LeadController::class, 'update']);
     });

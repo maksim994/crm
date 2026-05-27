@@ -69,16 +69,18 @@ class MetrikaLeadEnricher
         }
 
         $advertisingChannel = $this->trafficSourceMapper->toAdvertisingChannel($attribution);
-
         $updates = [];
 
         if ($advertisingChannel !== null) {
             $updates['advertising_channel'] = $advertisingChannel;
         }
 
-        if (blank($lead->utm_campaign_first) && filled($attribution->utmCampaign)) {
-            $updates['utm_campaign_first'] = $attribution->utmCampaign;
-        }
+        $this->fillIfBlank($updates, $lead, 'utm_source', $attribution->utmSource);
+        $this->fillIfBlank($updates, $lead, 'utm_medium', $attribution->utmMedium);
+        $this->fillIfBlank($updates, $lead, 'utm_campaign', $attribution->utmCampaign);
+        $this->fillIfBlank($updates, $lead, 'utm_term', $attribution->utmTerm);
+        $this->fillIfBlank($updates, $lead, 'utm_content', $attribution->utmContent);
+        $this->fillIfBlank($updates, $lead, 'utm_campaign_first', $attribution->utmCampaignFirst ?? $attribution->utmCampaign);
 
         if ($updates === []) {
             MetrikaLog::info('metrika.enrich.nothing_to_update', [
@@ -94,11 +96,26 @@ class MetrikaLeadEnricher
         MetrikaLog::info('metrika.enrich.applied', [
             'lead_id' => $lead->id,
             'advertising_channel' => $updates['advertising_channel'] ?? $lead->advertising_channel,
+            'utm_source' => $updates['utm_source'] ?? null,
+            'utm_medium' => $updates['utm_medium'] ?? null,
+            'utm_campaign' => $updates['utm_campaign'] ?? null,
+            'utm_term' => $updates['utm_term'] ?? null,
+            'utm_content' => $updates['utm_content'] ?? null,
             'utm_campaign_first' => $updates['utm_campaign_first'] ?? null,
             'traffic_source_id' => $attribution->trafficSourceId,
             'traffic_source_name' => $attribution->trafficSourceName,
         ]);
 
         return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $updates
+     */
+    private function fillIfBlank(array &$updates, Lead $lead, string $field, ?string $value): void
+    {
+        if (blank($lead->{$field}) && filled($value)) {
+            $updates[$field] = $value;
+        }
     }
 }

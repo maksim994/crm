@@ -38,8 +38,16 @@
               <dd>{{ site.timezone }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Почта проекта</dt>
+              <dt class="text-gray-500">Почта (реклама)</dt>
               <dd class="text-right">{{ site.email_inbound_address || '—' }}</dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-gray-500">Почта (SEO / поиск)</dt>
+              <dd class="text-right">{{ site.email_inbound_seo || '—' }}</dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-gray-500">Почта (прямые заходы)</dt>
+              <dd class="text-right">{{ site.email_inbound_other || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
               <dt class="text-gray-500">Лидов</dt>
@@ -75,6 +83,18 @@
           <Button type="button" variant="warning" @click="regenerate">Перевыпустить токен</Button>
           <p v-if="copyMessage" class="mt-2 text-sm text-success-600">{{ copyMessage }}</p>
         </div>
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Скрипт подстановки почт</h3>
+        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          Вставьте на site.ru. Скрипт сам определяет источник визита и подставляет почту из настроек проекта:
+          реклама → основная, поиск (Google/Yandex) → SEO, прямой заход → «остальные».
+          Подставьте токен из блока выше вместо <code>SITE_TOKEN</code>.
+        </p>
+        <pre class="mb-3 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-800">{{ embedScriptTag }}</pre>
+        <Button v-if="token" type="button" size="sm" @click="copyEmbedScript">Скопировать скрипт с токеном</Button>
+        <p v-if="embedCopyMessage" class="mt-2 text-sm text-success-600">{{ embedCopyMessage }}</p>
       </div>
 
       <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
@@ -121,6 +141,8 @@ interface SiteDetail {
   timezone: string
   metrika_counter_id?: string | null
   email_inbound_address?: string | null
+  email_inbound_seo?: string | null
+  email_inbound_other?: string | null
   leads_count?: number
   agency_client?: { id: string; name: string }
 }
@@ -131,8 +153,10 @@ const loading = ref(true)
 const site = ref<SiteDetail | null>(null)
 const integration = ref('')
 const ingestUrl = ref('')
+const embedScriptTag = ref('')
 const token = ref('')
 const copyMessage = ref('')
+const embedCopyMessage = ref('')
 const diagnosticsLoading = ref(false)
 const diagnosticsError = ref<string | null>(null)
 const diagnosticGroups = ref<DiagnosticGroup[]>([])
@@ -196,15 +220,34 @@ async function loadDiagnostics() {
   }
 }
 
+async function copyEmbedScript() {
+  if (!token.value) {
+    return
+  }
+
+  const snippet = embedScriptTag.value.replace('SITE_TOKEN', token.value)
+
+  try {
+    await navigator.clipboard.writeText(snippet)
+    embedCopyMessage.value = 'Скрипт скопирован'
+  } catch {
+    embedCopyMessage.value = 'Не удалось скопировать'
+  }
+}
+
 async function load() {
   loading.value = true
   try {
-    const res = await api<{ data: SiteDetail; integration: string; ingest_url: string }>(
-      `/sites/${route.params.id}`,
-    )
+    const res = await api<{
+      data: SiteDetail
+      integration: string
+      ingest_url: string
+      embed_script_tag: string
+    }>(`/sites/${route.params.id}`)
     site.value = res.data
     integration.value = res.integration
     ingestUrl.value = res.ingest_url
+    embedScriptTag.value = res.embed_script_tag
   } finally {
     loading.value = false
   }

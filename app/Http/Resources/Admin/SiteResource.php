@@ -24,6 +24,8 @@ class SiteResource extends JsonResource
             'timezone' => $this->timezone,
             'status' => $this->status->value,
             'email_inbound_address' => $this->email_inbound_address,
+            'email_inbound_seo' => $this->email_inbound_seo,
+            'email_inbound_other' => $this->email_inbound_other,
             'leads_count' => $this->whenCounted('leads'),
             'integration' => $this->when(isset($this->integration), $this->integration),
             'created_at' => $this->created_at?->toIso8601String(),

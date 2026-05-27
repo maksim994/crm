@@ -547,21 +547,23 @@ class IntegrationDiagnosticsService
 
     private function checkSiteInboundEmail(Site $site): DiagnosticCheck
     {
-        if (filled($site->email_inbound_address)) {
+        $addresses = $site->inboundEmailAddresses();
+
+        if ($addresses !== []) {
             return new DiagnosticCheck(
                 'site_inbound_email',
-                'Адрес пересылки',
+                'Адреса пересылки',
                 DiagnosticCheck::STATUS_OK,
-                (string) $site->email_inbound_address,
+                implode(', ', $addresses),
             );
         }
 
         return new DiagnosticCheck(
             'site_inbound_email',
-            'Адрес пересылки',
+            'Адреса пересылки',
             DiagnosticCheck::STATUS_WARNING,
-            'email_inbound_address не указан',
-            'Нужен для сопоставления входящей почты с проектом',
+            'Не указан ни один inbound email',
+            'Нужен для сопоставления входящей почты с проектом (основной, SEO или остальные)',
         );
     }
 

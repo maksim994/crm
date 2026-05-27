@@ -66,6 +66,8 @@ class SiteResource extends Resource
                                 SiteStatus::Archived => 'В архиве',
                             }),
                         Infolists\Components\TextEntry::make('email_inbound_address')->label('Inbound email'),
+                        Infolists\Components\TextEntry::make('email_inbound_seo')->label('Email SEO'),
+                        Infolists\Components\TextEntry::make('email_inbound_other')->label('Email (остальные)'),
                     ])
                     ->columns(2),
                 Infolists\Components\Section::make('Интеграция')

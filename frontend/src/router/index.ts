@@ -80,6 +80,12 @@ const router = createRouter({
       meta: { title: 'Редактирование проекта', requiresAuth: true },
     },
     {
+      path: '/leads/create',
+      name: 'LeadsCreate',
+      component: () => import('@/views/wbooster/leads/Create.vue'),
+      meta: { title: 'Новый лид', requiresAuth: true },
+    },
+    {
       path: '/leads',
       name: 'Leads',
       component: () => import('@/views/wbooster/leads/Index.vue'),

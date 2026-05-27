@@ -67,7 +67,12 @@ class MetrikaLeadEnricherTest extends TestCase
                     [
                         'dimensions' => [
                             ['id' => 'ad', 'name' => 'Рекламный трафик'],
-                            ['id' => 'campaign-1', 'name' => 'spring-sale'],
+                            ['id' => 'yandex', 'name' => 'yandex'],
+                            ['id' => 'cpc', 'name' => 'cpc'],
+                            ['id' => 'spring-sale', 'name' => 'spring-sale'],
+                            ['id' => 'keyword', 'name' => 'keyword'],
+                            ['id' => 'banner', 'name' => 'banner'],
+                            ['id' => 'first-campaign', 'name' => 'first-campaign'],
                         ],
                         'metrics' => [1],
                     ],
@@ -80,7 +85,12 @@ class MetrikaLeadEnricherTest extends TestCase
         $this->assertTrue($enriched);
         $lead->refresh();
         $this->assertSame(AdvertisingChannelResolver::ADVERTISING, $lead->advertising_channel);
-        $this->assertSame('spring-sale', $lead->utm_campaign_first);
+        $this->assertSame('yandex', $lead->utm_source);
+        $this->assertSame('cpc', $lead->utm_medium);
+        $this->assertSame('spring-sale', $lead->utm_campaign);
+        $this->assertSame('keyword', $lead->utm_term);
+        $this->assertSame('banner', $lead->utm_content);
+        $this->assertSame('first-campaign', $lead->utm_campaign_first);
     }
 
     public function test_enricher_skips_when_not_configured(): void
@@ -104,6 +114,50 @@ class MetrikaLeadEnricherTest extends TestCase
         $this->assertFalse(app(MetrikaReportingClient::class)->isConfigured());
         $this->assertFalse(app(MetrikaLeadEnricher::class)->enrich($lead->id));
         Http::assertNothingSent();
+    }
+
+    public function test_enricher_does_not_overwrite_existing_utm_fields(): void
+    {
+        $site = $this->createSiteWithMetrika('57691633');
+        $lead = Lead::query()->create([
+            'site_id' => $site->id,
+            'channel' => LeadChannel::Form,
+            'phone' => '+79001112233',
+            'lead_status' => LeadStatus::NotProcessed,
+            'metrika_client_id' => '17791064241773632',
+            'utm_source' => 'form-source',
+            'utm_medium' => 'form-medium',
+            'advertising_channel' => AdvertisingChannelResolver::NO_DATA,
+            'is_duplicate' => false,
+            'created_at' => now(),
+        ]);
+
+        Http::fake([
+            'api-metrika.yandex.net/*' => Http::response([
+                'data' => [
+                    [
+                        'dimensions' => [
+                            ['id' => 'ad', 'name' => 'Рекламный трафик'],
+                            ['id' => 'yandex', 'name' => 'yandex'],
+                            ['id' => 'cpc', 'name' => 'cpc'],
+                            ['id' => 'spring-sale', 'name' => 'spring-sale'],
+                            ['id' => 'keyword', 'name' => 'keyword'],
+                            ['id' => 'banner', 'name' => 'banner'],
+                            ['id' => 'first-campaign', 'name' => 'first-campaign'],
+                        ],
+                        'metrics' => [1],
+                    ],
+                ],
+            ]),
+        ]);
+
+        app(MetrikaLeadEnricher::class)->enrich($lead->id);
+
+        $lead->refresh();
+        $this->assertSame('form-source', $lead->utm_source);
+        $this->assertSame('form-medium', $lead->utm_medium);
+        $this->assertSame('spring-sale', $lead->utm_campaign);
+        $this->assertSame(AdvertisingChannelResolver::ADVERTISING, $lead->advertising_channel);
     }
 
     private function createSiteWithMetrika(string $counterId): Site

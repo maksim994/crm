@@ -31,7 +31,7 @@ class InboundEmailController extends Controller
         }
 
         $site = InboundEmailAddress::findSiteByRecipient($payload->to)
-            ?? Site::query()->where('email_inbound_address', $payload->to)->first();
+            ?? Site::findByInboundEmail($payload->to);
 
         if ($site === null) {
             Log::warning('inbound_email.unknown_recipient', ['to' => $payload->to]);

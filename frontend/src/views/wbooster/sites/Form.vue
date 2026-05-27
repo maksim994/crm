@@ -55,14 +55,28 @@
         <FormInput v-model="form.timezone" label="Timezone" id="site-timezone" />
         <FormInput
           v-model="form.email_inbound_address"
-          label="Почта проекта (для пересылки)"
+          label="Почта (реклама)"
           id="site-inbound-email"
           type="email"
-          placeholder="zayavki@client.ru"
+          placeholder="ads@client.ru"
+        />
+        <FormInput
+          v-model="form.email_inbound_seo"
+          label="Почта (SEO / поиск)"
+          id="site-inbound-email-seo"
+          type="email"
+          placeholder="seo@client.ru"
+        />
+        <FormInput
+          v-model="form.email_inbound_other"
+          label="Почта (прямые заходы)"
+          id="site-inbound-email-other"
+          type="email"
+          placeholder="info@client.ru"
         />
         <p class="-mt-3 text-sm text-gray-500 dark:text-gray-400">
-          Любой адрес проекта. Настройте на нём пересылку всех входящих на служебный ящик CRM
-          (например mail@mv-deploy.ru). CRM сопоставит проект по этому адресу в заголовках письма.
+          Скрипт wbooster.js на сайте подставляет нужный адрес автоматически: реклама, переход из поиска
+          или прямой заход. На каждый ящик настройте пересылку на служебный ящик CRM.
         </p>
         <div v-if="isEdit">
           <Button type="button" variant="warning" @click="regenerate">Перевыпустить токен</Button>
@@ -107,6 +121,8 @@ const form = ref({
   timezone: 'Europe/Moscow',
   status: 'active',
   email_inbound_address: '',
+  email_inbound_seo: '',
+  email_inbound_other: '',
 })
 
 onMounted(async () => {

@@ -71,10 +71,7 @@ class InboundEmailRecipientResolver
         }
 
         foreach ($addresses as $address) {
-            $site = Site::query()
-                ->whereNotNull('email_inbound_address')
-                ->whereRaw('LOWER(email_inbound_address) = ?', [$address])
-                ->first();
+            $site = Site::findByInboundEmail($address);
 
             if ($site !== null) {
                 return $site;

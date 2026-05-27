@@ -16,7 +16,7 @@ class AdvertisingChannelResolver
         ?string $utmSource,
         ?string $metrikaClientId,
     ): string {
-        if ($channel !== LeadChannel::Form) {
+        if (! in_array($channel, [LeadChannel::Form, LeadChannel::Manual], true)) {
             return self::NO_DATA;
         }
 

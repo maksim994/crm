@@ -1,11 +1,14 @@
 <template>
   <admin-layout>
-    <div class="mb-4">
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Лиды</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Режим администратора: лиды всех заказчиков. Клиент видит только свои лиды в
-        <a href="/cabinet/" class="text-brand-500 hover:underline">/cabinet/</a>.
-      </p>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Лиды</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Режим администратора: лиды всех заказчиков. Клиент видит только свои лиды в
+          <a href="/cabinet/" class="text-brand-500 hover:underline">/cabinet/</a>.
+        </p>
+      </div>
+      <router-link to="/leads/create" :class="btnPrimaryClass">Добавить лид</router-link>
     </div>
     <div
       class="mb-4 grid grid-cols-1 gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] md:grid-cols-2 lg:grid-cols-4"
@@ -83,6 +86,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import FormSelect from '@/components/wbooster/FormSelect.vue'
 import { formLabelClass, formSelectClass } from '@/constants/formClasses'
+import { btnPrimaryClass } from '@/constants/buttonClasses'
 import { api, type Paginated } from '@/api/client'
 
 interface Lead {

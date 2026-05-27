@@ -25,9 +25,7 @@ class ProcessInboundEmailJob implements ShouldQueue
         $site = InboundEmailAddress::findSiteByRecipient($this->to);
 
         if ($site === null) {
-            $site = Site::query()
-                ->where('email_inbound_address', $this->to)
-                ->first();
+            $site = Site::findByInboundEmail($this->to);
         }
 
         if ($site === null) {

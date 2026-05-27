@@ -34,6 +34,8 @@ class SiteController extends Controller
             'ingest_url' => SiteIntegration::ingestUrl(),
             'call_webhook_url' => SiteIntegration::callWebhookUrl(),
             'inbound_email' => $site->email_inbound_address,
+            'embed_script_url' => SiteIntegration::embedScriptUrl(),
+            'embed_script_tag' => SiteIntegration::embedScriptTag(),
         ]);
     }
 
@@ -92,6 +94,8 @@ class SiteController extends Controller
             'timezone' => ['required', 'string', 'max:64'],
             'status' => ['required', 'in:active,paused,archived'],
             'email_inbound_address' => ['nullable', 'email', 'max:255'],
+            'email_inbound_seo' => ['nullable', 'email', 'max:255'],
+            'email_inbound_other' => ['nullable', 'email', 'max:255'],
         ]);
 
         $data['domains'] = array_values(array_filter(array_map('trim', $data['domains'])));
@@ -103,10 +107,12 @@ class SiteController extends Controller
             )));
         }
 
-        if (! empty($data['email_inbound_address'])) {
-            $data['email_inbound_address'] = strtolower(trim((string) $data['email_inbound_address']));
-        } else {
-            $data['email_inbound_address'] = null;
+        foreach (['email_inbound_address', 'email_inbound_seo', 'email_inbound_other'] as $field) {
+            if (! empty($data[$field])) {
+                $data[$field] = strtolower(trim((string) $data[$field]));
+            } else {
+                $data[$field] = null;
+            }
         }
 
         return $data;

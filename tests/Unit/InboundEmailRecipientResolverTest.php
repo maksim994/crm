@@ -62,6 +62,30 @@ class InboundEmailRecipientResolverTest extends TestCase
         $this->assertNull($resolver->resolveSite(['unknown@client.ru']));
     }
 
+    public function test_resolves_site_by_seo_inbound_address(): void
+    {
+        $site = $this->createSite(['email_inbound_seo' => 'seo@client.ru']);
+
+        $resolver = new InboundEmailRecipientResolver;
+
+        $resolved = $resolver->resolveSite(['seo@client.ru']);
+
+        $this->assertNotNull($resolved);
+        $this->assertTrue($resolved->is($site));
+    }
+
+    public function test_resolves_site_by_other_inbound_address(): void
+    {
+        $site = $this->createSite(['email_inbound_other' => 'other@client.ru']);
+
+        $resolver = new InboundEmailRecipientResolver;
+
+        $resolved = $resolver->resolveSite(['other@client.ru']);
+
+        $this->assertNotNull($resolved);
+        $this->assertTrue($resolved->is($site));
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      */
