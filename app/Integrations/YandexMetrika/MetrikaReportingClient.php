@@ -171,7 +171,7 @@ class MetrikaReportingClient
         CarbonInterface $date,
         ?string $timezone = null,
     ): array {
-        $escapedClientId = str_replace("'", "\\'", trim($clientId));
+        $escapedClientId = $this->escapeFilterValue($clientId);
         $dateString = $date->format('Y-m-d');
 
         $query = [
@@ -203,6 +203,153 @@ class MetrikaReportingClient
             'query' => $query,
             'url' => $baseUrl.'?'.http_build_query($query),
         ];
+    }
+
+    /**
+     * @return array{query: array<string, string>, url: string}
+     */
+    public function buildLeadVisitParamRequestQuery(
+        string $counterId,
+        string $leadId,
+        CarbonInterface $date,
+        ?string $timezone = null,
+    ): array {
+        $visitParam = $this->escapeFilterValue((string) config('metrika.lead_visit_param', 'crm-lead'));
+        $escapedLeadId = $this->escapeFilterValue($leadId);
+        $dateString = $date->format('Y-m-d');
+
+        $query = [
+            'ids' => trim($counterId),
+            'metrics' => 'ym:s:visits',
+            'dimensions' => implode(',', [
+                'ym:s:trafficSource',
+                'ym:s:lastUTMSource',
+                'ym:s:lastUTMMedium',
+                'ym:s:lastUTMCampaign',
+                'ym:s:lastUTMTerm',
+                'ym:s:lastUTMContent',
+                'ym:s:firstUTMCampaign',
+            ]),
+            'filters' => "EXISTS(ym:s:paramsLevel1=='{$visitParam}' AND ym:s:paramsLevel2=='{$escapedLeadId}')",
+            'date1' => $dateString,
+            'date2' => $dateString,
+            'limit' => '1',
+            'lang' => (string) config('metrika.reporting_lang', 'ru'),
+        ];
+
+        if (filled($timezone)) {
+            $query['timezone'] = $timezone;
+        }
+
+        $baseUrl = rtrim((string) config('metrika.reporting_base_url'), '?');
+
+        return [
+            'query' => $query,
+            'url' => $baseUrl.'?'.http_build_query($query),
+        ];
+    }
+
+    /**
+     * Источник трафика и UTM по параметру визита crm-lead → UUID лида.
+     */
+    public function fetchAttributionByLeadVisitParam(
+        string $counterId,
+        string $leadId,
+        CarbonInterface $date,
+        ?string $timezone = null,
+    ): ?MetrikaVisitAttribution {
+        if (! $this->isConfigured()) {
+            MetrikaLog::warning('metrika.reporting.skip_not_configured');
+
+            return null;
+        }
+
+        $leadId = trim($leadId);
+        $counterId = trim($counterId);
+
+        if ($leadId === '' || $counterId === '') {
+            MetrikaLog::warning('metrika.reporting.skip_missing_lead_param_ids', [
+                'has_lead_id' => $leadId !== '',
+                'has_counter_id' => $counterId !== '',
+            ]);
+
+            return null;
+        }
+
+        $built = $this->buildLeadVisitParamRequestQuery($counterId, $leadId, $date, $timezone);
+
+        MetrikaLog::info('metrika.reporting.lead_param_request', [
+            'counter_id' => $counterId,
+            'lead_id' => $leadId,
+            'date' => $date->format('Y-m-d'),
+            'timezone' => $timezone,
+            'filters' => $built['query']['filters'],
+            'dimensions' => $built['query']['dimensions'],
+            'url' => $built['url'],
+        ]);
+
+        try {
+            $response = Http::withToken((string) config('metrika.oauth_token'), 'OAuth')
+                ->acceptJson()
+                ->timeout((int) config('metrika.reporting_timeout', 15))
+                ->get((string) config('metrika.reporting_base_url'), $built['query']);
+
+            $json = $response->json();
+
+            MetrikaLog::info('metrika.reporting.lead_param_response', [
+                'counter_id' => $counterId,
+                'status' => $response->status(),
+                'total_rows' => $json['total_rows'] ?? null,
+                'sampled' => $json['sampled'] ?? null,
+                'rows_returned' => is_array($json['data'] ?? null) ? count($json['data']) : 0,
+            ]);
+
+            if (! $response->successful()) {
+                MetrikaLog::warning('metrika.reporting.lead_param_failed', [
+                    'counter_id' => $counterId,
+                    'status' => $response->status(),
+                    'body' => mb_substr($response->body(), 0, 1000),
+                ]);
+
+                return null;
+            }
+
+            $attribution = $this->parseAttribution($json);
+
+            if ($attribution === null) {
+                MetrikaLog::info('metrika.reporting.empty_lead_param_attribution', [
+                    'counter_id' => $counterId,
+                    'lead_id' => $leadId,
+                    'hint' => 'Нет визита с параметром crm-lead за указанную дату или Метрика ещё не обработала параметр',
+                ]);
+            } else {
+                MetrikaLog::info('metrika.reporting.lead_param_parsed', [
+                    'counter_id' => $counterId,
+                    'traffic_source_id' => $attribution->trafficSourceId,
+                    'traffic_source_name' => $attribution->trafficSourceName,
+                    'utm_source' => $attribution->utmSource,
+                    'utm_medium' => $attribution->utmMedium,
+                    'utm_campaign' => $attribution->utmCampaign,
+                    'utm_term' => $attribution->utmTerm,
+                    'utm_content' => $attribution->utmContent,
+                    'utm_campaign_first' => $attribution->utmCampaignFirst,
+                ]);
+            }
+
+            return $attribution;
+        } catch (\Throwable $exception) {
+            MetrikaLog::warning('metrika.reporting.lead_param_exception', [
+                'counter_id' => $counterId,
+                'message' => $exception->getMessage(),
+            ]);
+
+            Log::warning('metrika.reporting.lead_param_exception', [
+                'counter_id' => $counterId,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     /**
@@ -400,5 +547,10 @@ class MetrikaReportingClient
         $value = trim($value);
 
         return $value !== '' && $value !== '(none)' ? $value : null;
+    }
+
+    private function escapeFilterValue(string $value): string
+    {
+        return str_replace("'", "\\'", trim($value));
     }
 }

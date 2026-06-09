@@ -30,8 +30,8 @@ class MetrikaLeadEnricher
             return false;
         }
 
-        $clientId = trim((string) $lead->metrika_client_id);
         $counterId = trim((string) $lead->site->metrika_counter_id);
+        $clientId = trim((string) $lead->metrika_client_id);
 
         MetrikaLog::info('metrika.enrich.start', [
             'lead_id' => $lead->id,
@@ -42,22 +42,35 @@ class MetrikaLeadEnricher
             'advertising_channel_before' => $lead->advertising_channel,
         ]);
 
-        if ($clientId === '' || $counterId === '') {
+        if ($counterId === '') {
             MetrikaLog::warning('metrika.enrich.skip_missing_ids', [
                 'lead_id' => $lead->id,
-                'has_client_id' => $clientId !== '',
-                'has_counter_id' => $counterId !== '',
+                'has_counter_id' => false,
             ]);
 
             return false;
         }
 
-        $attribution = $this->reportingClient->fetchAttributionByClientId(
+        $attribution = $this->reportingClient->fetchAttributionByLeadVisitParam(
             $counterId,
-            $clientId,
+            $lead->id,
             $lead->created_at ?? now(),
             $lead->site->timezone,
         );
+
+        if ($attribution === null && $clientId !== '') {
+            MetrikaLog::info('metrika.enrich.fallback_to_client_id', [
+                'lead_id' => $lead->id,
+                'client_id' => $clientId,
+            ]);
+
+            $attribution = $this->reportingClient->fetchAttributionByClientId(
+                $counterId,
+                $clientId,
+                $lead->created_at ?? now(),
+                $lead->site->timezone,
+            );
+        }
 
         if ($attribution === null) {
             MetrikaLog::info('metrika.enrich.no_data', [

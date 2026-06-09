@@ -47,15 +47,15 @@ class MetrikaTestLeadCommand extends Command
         $this->line('Дата лида: '.($lead->created_at ?? now())->format('Y-m-d'));
         $this->line('Реклама до: '.($lead->advertising_channel ?? '—'));
 
-        if ($clientId === '' || $counterId === '') {
-            $this->error('У лида должен быть metrika_client_id, у проекта — metrika_counter_id.');
+        if ($counterId === '') {
+            $this->error('У проекта должен быть metrika_counter_id.');
 
             return self::FAILURE;
         }
 
-        $built = $client->buildRequestQuery(
+        $built = $client->buildLeadVisitParamRequestQuery(
             $counterId,
-            $clientId,
+            $lead->id,
             $lead->created_at ?? now(),
             $lead->site->timezone,
         );

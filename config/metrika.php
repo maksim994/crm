@@ -22,8 +22,8 @@ return [
     | Reporting API (обогащение рекламного канала — v2, опционально)
     |--------------------------------------------------------------------------
     |
-    | OAuth-токен и счётчик для запроса источника трафика по metrika_client_id.
-    | Пока не подключено в ingest — см. docs/metrika-kanal-i-crm-lead.md
+    | OAuth-токен и счётчик для запроса источника трафика по параметру crm-lead.
+    | Если параметр визита ещё не найден, CRM пробует fallback по metrika_client_id.
     |
     */
 
@@ -32,6 +32,7 @@ return [
     'reporting_base_url' => env('METRIKA_REPORTING_BASE_URL', 'https://api-metrika.yandex.net/stat/v1/data'),
     'reporting_timeout' => (int) env('METRIKA_REPORTING_TIMEOUT', 15),
     'reporting_lang' => env('METRIKA_REPORTING_LANG', 'ru'),
+    'enrichment_delay_minutes' => (int) env('METRIKA_ENRICHMENT_DELAY_MINUTES', 5),
 
     /*
     | Подробные логи запросов/ответов Reporting API → storage/logs/metrika.log

@@ -32,9 +32,9 @@ yaCounter.params({ 'crm-lead': data.id });
 | Поле в ЛК | Что это | Откуда сейчас |
 |-----------|---------|----------------|
 | **Канал** (`channel`) | Тип поступления: Заявка / Звонок / Почта | CRM по endpoint (`/ingest/seolead`, `/api/v1/leads/call`, почта) |
-| **Реклама** (`advertising_channel`) | Источник трафика: «Переходы по рекламе» / «Нет данных» | **v1:** UTM с формы; **v2:** Reporting API по `metrika_client_id` (job, см. ниже) |
+| **Реклама** (`advertising_channel`) | Источник трафика: «Переходы по рекламе» / «Переходы из поиска» / «Нет данных» | UTM с формы + Reporting API Метрики по `crm-lead` (fallback: `metrika_client_id`) |
 
-Параметр `crm-lead` в отчёте Метрики **не подставляется** в колонку «Реклама» автоматически.
+Параметр `crm-lead` — основная связка CRM ↔ Метрика: CRM ищет визит по UUID лида и подтягивает `ym:s:trafficSource` и UTM в лид. По `ym:s:trafficSource` можно отличить рекламу (`ad`) от поиска (`organic` / поисковые системы).
 
 ---
 
@@ -46,13 +46,13 @@ yaCounter.params({ 'crm-lead': data.id });
 - склейка с `ClientID`;
 - отчёты **Источники**, **Директ**, UTM в интерфейсе Метрики.
 
-В CRM **сейчас** для «Рекламы» используется упрощённое правило (см. `AdvertisingChannelResolver`):
+В CRM есть быстрый fallback по UTM (см. `AdvertisingChannelResolver`):
 
 - `utm_medium=cpc` → «Переходы по рекламе»;
 - `utm_source` содержит `yandex` или `google` → то же;
 - иначе → «Нет данных».
 
-**Интеграция Reporting API Метрики** реализована опционально (`METRIKA_REPORTING_ENABLED` + OAuth). Без токена остаётся правило по UTM (v1).
+**Интеграция Reporting API Метрики** реализована опционально (`METRIKA_REPORTING_ENABLED` + OAuth). Без токена остаётся правило по UTM.
 
 Пока для теста передавайте с сайта те же UTM, что видите в Метрике на визите (в `lead.php` / JS они уже есть в [integraciya-s-saytom.md](./integraciya-s-saytom.md)).
 
@@ -69,7 +69,7 @@ yaCounter.params({ 'crm-lead': data.id });
 Тогда:
 
 - в Метрике появится ветка `crm-lead` → id лида;
-- в ЛК «Реклама» заполнится по UTM (если был `cpc` / yandex / google);
+- в ЛК «Реклама» заполнится по UTM сразу или после job из Метрики по `crm-lead`: например «Переходы по рекламе» или «Переходы из поиска»;
 - «Канал» для формы останется **Заявка**.
 
 ---
@@ -97,9 +97,9 @@ METRIKA_REPORTING_ENABLED=true
 METRIKA_OAUTH_TOKEN=y0_AgAAAA...   # OAuth, право metrika:read
 ```
 
-На карточке **проекта** должен быть указан **ID счётчика**; в заявке — `metrika_client_id`.
+На карточке **проекта** должен быть указан **ID счётчика**. После ответа CRM сайт должен отправить в Метрику `yaCounter.params({ 'crm-lead': id })`; `metrika_client_id` полезен как fallback.
 
-После отправки формы job запрашивает `ym:s:trafficSource` по Client ID за день лида и обновляет **Рекламу** в ЛК (источник `ad` → «Переходы по рекламе»). При пустом `utm_campaign_first` подставляется кампания из Метрики.
+После отправки формы job с небольшой задержкой запрашивает `ym:s:trafficSource` по параметру визита `crm-lead → id лида` за день лида и обновляет **Рекламу** в ЛК (`ad` → «Переходы по рекламе», `organic` / поисковые системы → «Переходы из поиска»). Если параметр ещё не найден, CRM пробует fallback по Client ID. При пустом `utm_campaign_first` подставляется кампания из Метрики.
 
 Требуется **queue worker** (`php artisan queue:work redis`) на том же окружении, что и web.
 
@@ -127,9 +127,12 @@ METRIKA_REPORTING_LOG=true
 |-------------|------------|
 | `metrika.job.start` | Job взял лид в работу |
 | `metrika.reporting.request` | URL и параметры запроса (filters, dimensions, date) |
+| `metrika.reporting.lead_param_request` | URL и параметры запроса по `crm-lead` |
 | `metrika.reporting.response` | HTTP-статус, `total_rows`, число строк |
 | `metrika.reporting.parsed` | Распознанный источник трафика и UTM |
+| `metrika.reporting.lead_param_parsed` | Распознанный источник трафика и UTM по `crm-lead` |
 | `metrika.reporting.empty_attribution` | Метрика ответила, но визит с Client ID не найден |
+| `metrika.reporting.empty_lead_param_attribution` | Метрика ответила, но визит с `crm-lead` ещё не найден |
 | `metrika.reporting.failed` | Ошибка API (401, 403, 400…) — смотрите `body` |
 | `metrika.enrich.applied` | Поля лида обновлены |
 
@@ -172,7 +175,8 @@ curl -sS -H "Authorization: OAuth ВАШ_ТОКЕН" \
 |---------|---------|
 | Нет строк в логе `metrika.*` | `METRIKA_REPORTING_LOG=false` или не запущен worker |
 | `401` в `metrika.reporting.failed` | Неверный или просроченный OAuth |
-| `empty_attribution` | Client ID не совпал с визитом **за дату лида** (другой день, другой счётчик) |
-| Job не стартует | Нет `metrika_client_id` на лиде или счётчика на проекте |
+| `empty_lead_param_attribution` | `crm-lead` ещё не обработан Метрикой, не отправлен с сайта или другой счётчик |
+| `empty_attribution` | Fallback Client ID не совпал с визитом **за дату лида** (другой день, другой счётчик) |
+| Job не стартует | Нет счётчика Метрики на проекте или выключен `METRIKA_REPORTING_ENABLED` |
 
 **Важно:** CRM ходит в **Reporting API** (чтение статистики), а не отправляет данные *в* Метрику. На сайт данные уходят через `yaCounter.params({ 'crm-lead': id })` — это проверяется в интерфейсе Метрики (отчёт «Параметры визита»).

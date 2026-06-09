@@ -8,6 +8,8 @@ class AdvertisingChannelResolver
 {
     public const ADVERTISING = 'Переходы по рекламе';
 
+    public const ORGANIC_SEARCH = 'Переходы из поиска';
+
     public const NO_DATA = 'Нет данных';
 
     public function resolve(

@@ -41,7 +41,6 @@ class MetrikaLeadEnricherTest extends TestCase
         $this->post('/ingest/seolead', [
             'token' => $token,
             'phone' => '+79001112233',
-            'metrika_client_id' => '17791064241773632',
         ])->assertCreated();
 
         Queue::assertPushed(EnrichLeadFromMetrikaJob::class);
@@ -55,7 +54,6 @@ class MetrikaLeadEnricherTest extends TestCase
             'channel' => LeadChannel::Form,
             'phone' => '+79001112233',
             'lead_status' => LeadStatus::NotProcessed,
-            'metrika_client_id' => '17791064241773632',
             'advertising_channel' => AdvertisingChannelResolver::NO_DATA,
             'is_duplicate' => false,
             'created_at' => now(),
@@ -91,6 +89,89 @@ class MetrikaLeadEnricherTest extends TestCase
         $this->assertSame('keyword', $lead->utm_term);
         $this->assertSame('banner', $lead->utm_content);
         $this->assertSame('first-campaign', $lead->utm_campaign_first);
+    }
+
+    public function test_enricher_marks_search_traffic_from_metrika(): void
+    {
+        $site = $this->createSiteWithMetrika('57691633');
+        $lead = Lead::query()->create([
+            'site_id' => $site->id,
+            'channel' => LeadChannel::Form,
+            'phone' => '+79001112234',
+            'lead_status' => LeadStatus::NotProcessed,
+            'advertising_channel' => AdvertisingChannelResolver::NO_DATA,
+            'is_duplicate' => false,
+            'created_at' => now(),
+        ]);
+
+        Http::fake([
+            'api-metrika.yandex.net/*' => Http::response([
+                'data' => [
+                    [
+                        'dimensions' => [
+                            ['id' => 'organic', 'name' => 'Переходы из поисковых систем'],
+                            ['id' => 'yandex', 'name' => 'yandex'],
+                            ['id' => '(none)', 'name' => '(none)'],
+                            ['id' => '(none)', 'name' => '(none)'],
+                            ['id' => '(none)', 'name' => '(none)'],
+                            ['id' => '(none)', 'name' => '(none)'],
+                            ['id' => '(none)', 'name' => '(none)'],
+                        ],
+                        'metrics' => [1],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $enriched = app(MetrikaLeadEnricher::class)->enrich($lead->id);
+
+        $this->assertTrue($enriched);
+        $lead->refresh();
+        $this->assertSame(AdvertisingChannelResolver::ORGANIC_SEARCH, $lead->advertising_channel);
+        $this->assertSame('yandex', $lead->utm_source);
+    }
+
+    public function test_enricher_falls_back_to_client_id_when_lead_param_is_missing(): void
+    {
+        $site = $this->createSiteWithMetrika('57691633');
+        $lead = Lead::query()->create([
+            'site_id' => $site->id,
+            'channel' => LeadChannel::Form,
+            'phone' => '+79001112233',
+            'lead_status' => LeadStatus::NotProcessed,
+            'metrika_client_id' => '17791064241773632',
+            'advertising_channel' => AdvertisingChannelResolver::NO_DATA,
+            'is_duplicate' => false,
+            'created_at' => now(),
+        ]);
+
+        Http::fake([
+            'api-metrika.yandex.net/*' => Http::sequence()
+                ->push(['data' => [], 'total_rows' => 0])
+                ->push([
+                    'data' => [
+                        [
+                            'dimensions' => [
+                                ['id' => 'ad', 'name' => 'Рекламный трафик'],
+                                ['id' => 'yandex', 'name' => 'yandex'],
+                                ['id' => 'cpc', 'name' => 'cpc'],
+                                ['id' => 'spring-sale', 'name' => 'spring-sale'],
+                                ['id' => 'keyword', 'name' => 'keyword'],
+                                ['id' => 'banner', 'name' => 'banner'],
+                                ['id' => 'first-campaign', 'name' => 'first-campaign'],
+                            ],
+                            'metrics' => [1],
+                        ],
+                    ],
+                ]),
+        ]);
+
+        $enriched = app(MetrikaLeadEnricher::class)->enrich($lead->id);
+
+        $this->assertTrue($enriched);
+        Http::assertSentCount(2);
+        $lead->refresh();
+        $this->assertSame(AdvertisingChannelResolver::ADVERTISING, $lead->advertising_channel);
     }
 
     public function test_enricher_skips_when_not_configured(): void

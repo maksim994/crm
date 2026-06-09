@@ -31,6 +31,7 @@ class LeadIngestionService
         $token = trim((string) ($payload['token'] ?? ''));
         $site = $this->resolveSite($token, $visitorIp);
         $data = $this->validateFormPayload($payload);
+        $data = $this->mergeAttributionFromPageUrl($data);
 
         $pageUrl = $data['page_url'] ?? null;
         $landingDomain = $this->extractDomain($pageUrl);
@@ -245,11 +246,12 @@ class LeadIngestionService
 
         $lead->loadMissing('site');
 
-        if (blank($lead->metrika_client_id) || blank($lead->site?->metrika_counter_id)) {
+        if (blank($lead->site?->metrika_counter_id)) {
             return;
         }
 
-        EnrichLeadFromMetrikaJob::dispatch($lead->id);
+        EnrichLeadFromMetrikaJob::dispatch($lead->id)
+            ->delay(now()->addMinutes((int) config('metrika.enrichment_delay_minutes', 5)));
     }
 
     /**
@@ -359,6 +361,69 @@ class LeadIngestionService
         $host = parse_url($pageUrl, PHP_URL_HOST);
 
         return is_string($host) && $host !== '' ? strtolower($host) : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function mergeAttributionFromPageUrl(array $data): array
+    {
+        $pageUrl = $data['page_url'] ?? null;
+
+        if (! is_string($pageUrl) || trim($pageUrl) === '') {
+            return $data;
+        }
+
+        $query = parse_url($pageUrl, PHP_URL_QUERY);
+
+        if (! is_string($query) || trim($query) === '') {
+            return $data;
+        }
+
+        parse_str($query, $queryParams);
+
+        foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as $key) {
+            if (blank($data[$key] ?? null) && isset($queryParams[$key]) && is_scalar($queryParams[$key])) {
+                $value = trim((string) $queryParams[$key]);
+
+                if ($value !== '') {
+                    $data[$key] = substr($value, 0, 255);
+                }
+            }
+        }
+
+        $sourceInferredFromAdClick = false;
+
+        if (blank($data['utm_source'] ?? null) && $this->hasFilledQueryParam($queryParams, 'yclid')) {
+            $data['utm_source'] = 'yandex';
+            $sourceInferredFromAdClick = true;
+        }
+
+        if (blank($data['utm_source'] ?? null) && (
+            $this->hasFilledQueryParam($queryParams, 'gclid')
+            || $this->hasFilledQueryParam($queryParams, 'gbraid')
+            || $this->hasFilledQueryParam($queryParams, 'wbraid')
+        )) {
+            $data['utm_source'] = 'google';
+            $sourceInferredFromAdClick = true;
+        }
+
+        if ($sourceInferredFromAdClick && blank($data['utm_medium'] ?? null)) {
+            $data['utm_medium'] = 'cpc';
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $queryParams
+     */
+    private function hasFilledQueryParam(array $queryParams, string $key): bool
+    {
+        return isset($queryParams[$key])
+            && is_scalar($queryParams[$key])
+            && trim((string) $queryParams[$key]) !== '';
     }
 
     private function domainAllowed(Site $site, string $landingDomain): bool

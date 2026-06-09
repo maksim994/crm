@@ -73,6 +73,43 @@ class SeoLeadIngestTest extends TestCase
         ]);
     }
 
+    public function test_utm_is_extracted_from_page_url_when_fields_are_missing(): void
+    {
+        $this->post('/ingest/seolead', [
+            'token' => $this->token,
+            'phone' => '+79001112234',
+            'page_url' => 'https://example.com/landing?utm_source=yandex-direct&utm_medium=cpc&utm_campaign=summer&utm_term=bed&utm_content=banner',
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('leads', [
+            'site_id' => $this->site->id,
+            'phone' => '+79001112234',
+            'utm_source' => 'yandex-direct',
+            'utm_medium' => 'cpc',
+            'utm_campaign' => 'summer',
+            'utm_term' => 'bed',
+            'utm_content' => 'banner',
+            'advertising_channel' => AdvertisingChannelResolver::ADVERTISING,
+        ]);
+    }
+
+    public function test_yandex_click_id_marks_lead_as_advertising_when_utm_is_missing(): void
+    {
+        $this->post('/ingest/seolead', [
+            'token' => $this->token,
+            'phone' => '+79001112235',
+            'page_url' => 'https://example.com/landing?yclid=123456789',
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('leads', [
+            'site_id' => $this->site->id,
+            'phone' => '+79001112235',
+            'utm_source' => 'yandex',
+            'utm_medium' => 'cpc',
+            'advertising_channel' => AdvertisingChannelResolver::ADVERTISING,
+        ]);
+    }
+
     public function test_invalid_token_returns_401(): void
     {
         $this->post('/ingest/seolead', [
