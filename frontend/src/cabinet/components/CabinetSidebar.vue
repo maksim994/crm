@@ -23,20 +23,20 @@
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
           class="dark:hidden"
-          src="/images/logo/logo.svg"
-          alt="WBooster"
-          width="150"
-          height="40"
+          :src="logoLightUrl"
+          alt="Lead CRM"
+          width="152"
+          height="32"
         />
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
           class="hidden dark:block"
-          src="/images/logo/logo-dark.svg"
-          alt="WBooster"
-          width="150"
-          height="40"
+          :src="logoDarkUrl"
+          alt="Lead CRM"
+          width="152"
+          height="32"
         />
-        <img v-else src="/images/logo/logo-icon.svg" alt="WBooster" width="32" height="32" />
+        <img v-else :src="logoIconUrl" alt="Lead CRM" width="34" height="32" />
       </router-link>
     </div>
 
@@ -139,6 +139,7 @@ import { useRoute } from 'vue-router'
 import { BoxCubeIcon, ChevronDownIcon, HorizontalDots, TableIcon } from '@/icons'
 import { useSidebar } from '@/composables/useSidebar'
 import { loadCabinetSites, useCabinetSites } from '@cabinet/composables/useCabinetSites'
+import { logoDarkUrl, logoIconUrl, logoLightUrl } from '@/constants/branding'
 
 const route = useRoute()
 const { isExpanded, isMobileOpen, isHovered, openSubmenu, toggleSubmenu } = useSidebar()

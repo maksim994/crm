@@ -7,35 +7,24 @@
 
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <table class="min-w-full">
-        <thead class="border-b border-gray-200 dark:border-gray-800">
-          <tr class="text-left text-sm text-gray-500">
-            <th class="p-4">Имя</th>
-            <th class="p-4">Email</th>
-            <th class="p-4">Статус</th>
-            <th class="p-4 text-right">Действия</th>
+        <thead :class="tableHeadRowClass">
+          <tr>
+            <th :class="tableHeadCellClass">Имя</th>
+            <th :class="tableHeadCellClass">Email</th>
+            <th :class="tableHeadCellClass">Статус</th>
+            <th :class="tableHeadCellRightClass">Действия</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="admin in admins"
-            :key="admin.id"
-            class="border-b border-gray-100 dark:border-gray-800"
-          >
-            <td class="p-4 font-medium text-gray-800 dark:text-white">{{ admin.name }}</td>
-            <td class="p-4">{{ admin.email }}</td>
-            <td class="p-4">
-              <span
-                class="rounded-full px-2 py-0.5 text-xs"
-                :class="
-                  admin.is_active
-                    ? 'bg-success-50 text-success-700 dark:bg-success-500/10'
-                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800'
-                "
-              >
+          <tr v-for="admin in admins" :key="admin.id" :class="tableRowClass">
+            <td :class="tableCellMediumClass">{{ admin.name }}</td>
+            <td :class="tableCellClass">{{ admin.email }}</td>
+            <td :class="tableCellClass">
+              <span :class="admin.is_active ? statusActiveUserBadgeClass : statusInactiveBadgeClass">
                 {{ admin.is_active ? 'Активен' : 'Отключён' }}
               </span>
             </td>
-            <td class="p-4 text-right space-x-3">
+            <td :class="`${tableCellClass} text-right space-x-3`">
               <router-link
                 :to="`/admins/${admin.id}/edit`"
                 class="text-sm text-brand-500 hover:underline"
@@ -49,7 +38,7 @@
           </tr>
         </tbody>
       </table>
-      <p v-if="!admins.length" class="p-6 text-sm text-gray-500">Администраторы не добавлены.</p>
+      <p v-if="!admins.length" :class="emptyStateClass">Администраторы не добавлены.</p>
     </div>
   </admin-layout>
 </template>
@@ -58,6 +47,17 @@
 import { onMounted, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { btnPrimaryClass } from '@/constants/buttonClasses'
+import {
+  emptyStateClass,
+  statusActiveUserBadgeClass,
+  statusInactiveBadgeClass,
+  tableCellClass,
+  tableCellMediumClass,
+  tableHeadCellClass,
+  tableHeadCellRightClass,
+  tableHeadRowClass,
+  tableRowClass,
+} from '@/constants/uiClasses'
 import { api, ApiError } from '@/api/client'
 
 interface PlatformAdmin {

@@ -6,35 +6,86 @@
     </div>
     <div v-if="lead" class="grid gap-4 md:grid-cols-2">
       <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 class="mb-4 font-semibold">Контекст</h3>
+        <h3 :class="cardTitleClass">Контекст</h3>
         <dl class="space-y-2 text-sm">
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Заказчик</dt><dd>{{ lead.site?.agency_client?.name }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Проект</dt><dd>{{ lead.site?.name }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Канал</dt><dd>{{ lead.channel_label }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Статус</dt><dd>{{ lead.lead_status_label }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Реклама</dt><dd>{{ lead.advertising_channel || '—' }}</dd></div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Заказчик</dt>
+            <dd :class="dlValueClass">{{ lead.site?.agency_client?.name }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Проект</dt>
+            <dd :class="dlValueClass">{{ lead.site?.name }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Канал</dt>
+            <dd :class="dlValueClass">{{ lead.channel_label }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Статус</dt>
+            <dd :class="dlValueClass">{{ lead.lead_status_label }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Реклама</dt>
+            <dd :class="dlValueClass">{{ lead.advertising_channel || '—' }}</dd>
+          </div>
         </dl>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 class="mb-4 font-semibold">Контакт</h3>
+        <h3 :class="cardTitleClass">Контакт</h3>
         <dl class="space-y-2 text-sm">
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Телефон</dt><dd>{{ lead.phone || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Email</dt><dd>{{ lead.email || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Имя</dt><dd>{{ lead.contact_name || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Комментарий</dt><dd>{{ lead.comment || '—' }}</dd></div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Телефон</dt>
+            <dd :class="dlValueClass">{{ lead.phone || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Email</dt>
+            <dd :class="dlValueClass">{{ lead.email || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Имя</dt>
+            <dd :class="dlValueClass">{{ lead.contact_name || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Комментарий</dt>
+            <dd :class="dlValueClass">{{ lead.comment || '—' }}</dd>
+          </div>
         </dl>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03] md:col-span-2">
-        <h3 class="mb-4 font-semibold">UTM и Метрика</h3>
+        <h3 :class="cardTitleClass">UTM и Метрика</h3>
         <dl class="grid gap-2 text-sm sm:grid-cols-2">
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Client ID</dt><dd>{{ lead.metrika_client_id || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">UTM Source</dt><dd>{{ lead.utm_source || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">UTM Medium</dt><dd>{{ lead.utm_medium || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">UTM Campaign</dt><dd>{{ lead.utm_campaign || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">UTM Term</dt><dd>{{ lead.utm_term || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">UTM Content</dt><dd>{{ lead.utm_content || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">UTM Campaign (first)</dt><dd>{{ lead.utm_campaign_first || '—' }}</dd></div>
-          <div class="flex justify-between gap-4"><dt class="text-gray-500">Landing</dt><dd>{{ lead.landing_domain || '—' }}</dd></div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Client ID</dt>
+            <dd :class="dlValueClass">{{ lead.metrika_client_id || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">UTM Source</dt>
+            <dd :class="dlValueClass">{{ lead.utm_source || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">UTM Medium</dt>
+            <dd :class="dlValueClass">{{ lead.utm_medium || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">UTM Campaign</dt>
+            <dd :class="dlValueClass">{{ lead.utm_campaign || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">UTM Term</dt>
+            <dd :class="dlValueClass">{{ lead.utm_term || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">UTM Content</dt>
+            <dd :class="dlValueClass">{{ lead.utm_content || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">UTM Campaign (first)</dt>
+            <dd :class="dlValueClass">{{ lead.utm_campaign_first || '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt :class="dlLabelClass">Landing</dt>
+            <dd :class="dlValueClass">{{ lead.landing_domain || '—' }}</dd>
+          </div>
         </dl>
       </div>
     </div>
@@ -46,6 +97,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { btnOutlineClass, btnPrimaryClass } from '@/constants/buttonClasses'
+import { cardTitleClass, dlLabelClass, dlValueClass } from '@/constants/uiClasses'
 import { api } from '@/api/client'
 
 interface LeadDetails {

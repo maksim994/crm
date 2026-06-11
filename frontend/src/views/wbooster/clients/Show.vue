@@ -2,7 +2,7 @@
   <admin-layout>
     <PageBreadcrumb :page-title="client?.name ?? 'Заказчик'" />
 
-    <div v-if="loading" class="text-sm text-gray-500">Загрузка…</div>
+    <div v-if="loading" :class="loadingTextClass">Загрузка…</div>
 
     <template v-else-if="client">
       <div class="mb-4 flex flex-wrap gap-2">
@@ -22,54 +22,54 @@
 
       <div class="mb-6 grid gap-4 lg:grid-cols-2">
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-          <h3 class="mb-4 font-semibold text-gray-800 dark:text-white">Заказчик</h3>
+          <h3 :class="cardTitleClass">Заказчик</h3>
           <dl class="space-y-3 text-sm">
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Статус</dt>
+              <dt :class="dlLabelClass">Статус</dt>
               <dd>
                 <span :class="clientStatusBadgeClass(client.status)">{{ statusLabel(client.status) }}</span>
               </dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">ИНН</dt>
-              <dd>{{ client.inn || '—' }}</dd>
+              <dt :class="dlLabelClass">ИНН</dt>
+              <dd :class="dlValueClass">{{ client.inn || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Контакт</dt>
-              <dd class="text-right">{{ client.contact_name || '—' }}</dd>
+              <dt :class="dlLabelClass">Контакт</dt>
+              <dd :class="dlValueRightClass">{{ client.contact_name || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Email</dt>
-              <dd class="text-right">{{ client.contact_email || '—' }}</dd>
+              <dt :class="dlLabelClass">Email</dt>
+              <dd :class="dlValueRightClass">{{ client.contact_email || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Телефон</dt>
-              <dd>{{ client.contact_phone || '—' }}</dd>
+              <dt :class="dlLabelClass">Телефон</dt>
+              <dd :class="dlValueClass">{{ client.contact_phone || '—' }}</dd>
             </div>
             <div v-if="client.manager_comment" class="border-t border-gray-100 pt-3 dark:border-gray-800">
-              <dt class="mb-1 text-gray-500">Комментарий менеджера</dt>
-              <dd class="whitespace-pre-wrap text-gray-800 dark:text-white">{{ client.manager_comment }}</dd>
+              <dt :class="`${dlLabelClass} mb-1`">Комментарий менеджера</dt>
+              <dd class="whitespace-pre-wrap text-gray-800 dark:text-white/90">{{ client.manager_comment }}</dd>
             </div>
           </dl>
         </div>
 
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-          <h3 class="mb-4 font-semibold text-gray-800 dark:text-white">Сводка</h3>
+          <h3 :class="cardTitleClass">Сводка</h3>
           <dl class="space-y-3 text-sm">
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Проектов</dt>
-              <dd>{{ client.sites_count ?? sites.length }}</dd>
+              <dt :class="dlLabelClass">Проектов</dt>
+              <dd :class="dlValueClass">{{ client.sites_count ?? sites.length }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Лидов</dt>
-              <dd>{{ client.leads_count ?? 0 }}</dd>
+              <dt :class="dlLabelClass">Лидов</dt>
+              <dd :class="dlValueClass">{{ client.leads_count ?? 0 }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Пользователей ЛК</dt>
-              <dd>{{ users.length }}</dd>
+              <dt :class="dlLabelClass">Пользователей ЛК</dt>
+              <dd :class="dlValueClass">{{ users.length }}</dd>
             </div>
           </dl>
-          <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+          <p :class="`${mutedTextClass} mt-4`">
             Вход в
             <a href="/cabinet/" class="text-brand-500 hover:underline">/cabinet/</a>
             под email пользователя ЛК.
@@ -84,35 +84,31 @@
         </div>
         <div v-if="sites.length" class="overflow-x-auto">
           <table class="min-w-full text-sm">
-            <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-800">
+            <thead :class="tableHeadRowClass">
               <tr>
-                <th class="p-4 text-left">Название</th>
-                <th class="p-4 text-left">Домены</th>
-                <th class="p-4 text-left">Статус</th>
-                <th class="p-4 text-right">Лидов</th>
+                <th :class="tableHeadCellClass">Название</th>
+                <th :class="tableHeadCellClass">Домены</th>
+                <th :class="tableHeadCellClass">Статус</th>
+                <th :class="tableHeadCellRightClass">Лидов</th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="site in sites"
-                :key="site.id"
-                class="border-b border-gray-100 dark:border-gray-800"
-              >
-                <td class="p-4 font-medium">
+              <tr v-for="site in sites" :key="site.id" :class="tableRowClass">
+                <td :class="tableCellMediumClass">
                   <router-link :to="`/sites/${site.id}`" class="text-brand-500 hover:underline">
                     {{ site.name }}
                   </router-link>
                 </td>
-                <td class="p-4">{{ (site.domains || []).join(', ') || '—' }}</td>
-                <td class="p-4">
+                <td :class="tableCellClass">{{ (site.domains || []).join(', ') || '—' }}</td>
+                <td :class="tableCellClass">
                   <span :class="siteStatusBadgeClass(site.status)">{{ siteStatusLabel(site.status) }}</span>
                 </td>
-                <td class="p-4 text-right">{{ site.leads_count ?? 0 }}</td>
+                <td :class="`${tableCellClass} text-right`">{{ site.leads_count ?? 0 }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p v-else class="p-6 text-sm text-gray-500">Проектов пока нет.</p>
+        <p v-else :class="emptyStateClass">Проектов пока нет.</p>
       </div>
 
       <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -129,37 +125,26 @@
         </div>
         <div v-if="users.length" class="overflow-x-auto">
           <table class="min-w-full text-sm">
-            <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-800">
+            <thead :class="tableHeadRowClass">
               <tr>
-                <th class="p-4 text-left">Имя</th>
-                <th class="p-4 text-left">Email</th>
-                <th class="p-4 text-left">Проекты</th>
-                <th class="p-4 text-left">Статус</th>
-                <th class="p-4 text-right">Действия</th>
+                <th :class="tableHeadCellClass">Имя</th>
+                <th :class="tableHeadCellClass">Email</th>
+                <th :class="tableHeadCellClass">Проекты</th>
+                <th :class="tableHeadCellClass">Статус</th>
+                <th :class="tableHeadCellRightClass">Действия</th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="user in users"
-                :key="user.id"
-                class="border-b border-gray-100 dark:border-gray-800"
-              >
-                <td class="p-4 font-medium text-gray-800 dark:text-white">{{ user.name }}</td>
-                <td class="p-4">{{ user.email }}</td>
-                <td class="p-4">{{ accessLabel(user) }}</td>
-                <td class="p-4">
-                  <span
-                    class="rounded-full px-2 py-0.5 text-xs"
-                    :class="
-                      user.is_active
-                        ? 'bg-success-50 text-success-700 dark:bg-success-500/10'
-                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800'
-                    "
-                  >
+              <tr v-for="user in users" :key="user.id" :class="tableRowClass">
+                <td :class="tableCellMediumClass">{{ user.name }}</td>
+                <td :class="tableCellClass">{{ user.email }}</td>
+                <td :class="tableCellClass">{{ accessLabel(user) }}</td>
+                <td :class="tableCellClass">
+                  <span :class="user.is_active ? statusActiveUserBadgeClass : statusInactiveBadgeClass">
                     {{ user.is_active ? 'Активен' : 'Отключён' }}
                   </span>
                 </td>
-                <td class="p-4 text-right space-x-3">
+                <td :class="`${tableCellClass} text-right space-x-3`">
                   <button
                     v-if="user.is_active"
                     type="button"
@@ -187,7 +172,7 @@
             </tbody>
           </table>
         </div>
-        <p v-else class="p-6 text-sm text-gray-500">Пользователи ЛК не назначены.</p>
+        <p v-else :class="emptyStateClass">Пользователи ЛК не назначены.</p>
       </div>
     </template>
   </admin-layout>
@@ -199,6 +184,26 @@ import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import { btnOutlineClass, btnPrimaryClass } from '@/constants/buttonClasses'
+import {
+  cardTitleClass,
+  dlLabelClass,
+  dlValueClass,
+  dlValueRightClass,
+  emptyStateClass,
+  loadingTextClass,
+  mutedTextClass,
+  statusActiveBadgeClass,
+  statusActiveUserBadgeClass,
+  statusArchivedBadgeClass,
+  statusInactiveBadgeClass,
+  statusPausedBadgeClass,
+  tableCellClass,
+  tableCellMediumClass,
+  tableHeadCellClass,
+  tableHeadCellRightClass,
+  tableHeadRowClass,
+  tableRowClass,
+} from '@/constants/uiClasses'
 import { api, ApiError } from '@/api/client'
 
 interface ClientDetail {
@@ -247,10 +252,7 @@ function statusLabel(status: string): string {
 }
 
 function clientStatusBadgeClass(status: string): string {
-  const base = 'rounded-full px-2 py-0.5 text-xs'
-  return status === 'active'
-    ? `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`
-    : `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`
+  return status === 'active' ? statusActiveBadgeClass : statusArchivedBadgeClass
 }
 
 function siteStatusLabel(status: string): string {
@@ -263,13 +265,12 @@ function siteStatusLabel(status: string): string {
 }
 
 function siteStatusBadgeClass(status: string): string {
-  const base = 'rounded-full px-2 py-0.5 text-xs'
   const map: Record<string, string> = {
-    active: `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`,
-    paused: `${base} bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400`,
-    archived: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`,
+    active: statusActiveBadgeClass,
+    paused: statusPausedBadgeClass,
+    archived: statusArchivedBadgeClass,
   }
-  return map[status] ?? `${base} bg-gray-100 text-gray-600`
+  return map[status] ?? statusArchivedBadgeClass
 }
 
 function accessLabel(user: CabinetUser): string {

@@ -3,7 +3,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
       <div>
         <h3 class="font-semibold text-gray-800 dark:text-white">{{ title }}</h3>
-        <p v-if="checkedAt" class="mt-1 text-xs text-gray-500">
+        <p v-if="checkedAt" :class="`${mutedTextClass} mt-1 text-xs`">
           Проверено: {{ formatCheckedAt(checkedAt) }}
         </p>
       </div>
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div v-if="loading && !groups.length" class="p-6 text-sm text-gray-500">Загрузка…</div>
+    <div v-if="loading && !groups.length" :class="`${loadingTextClass} p-6`">Загрузка…</div>
     <div v-else-if="error" class="p-6 text-sm text-red-500">{{ error }}</div>
     <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
       <section v-for="group in groups" :key="group.id" class="p-4">
@@ -41,7 +41,7 @@
                   <span :class="statusBadgeClass(check.status)">{{ statusLabel(check.status) }}</span>
                 </div>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ check.message }}</p>
-                <p v-if="check.hint" class="mt-1 text-xs text-gray-500 dark:text-gray-500">{{ check.hint }}</p>
+                <p v-if="check.hint" :class="`${mutedTextClass} mt-1 text-xs`">{{ check.hint }}</p>
               </div>
             </div>
           </li>
@@ -53,6 +53,7 @@
 
 <script setup lang="ts">
 import { btnOutlineClass } from '@/constants/buttonClasses'
+import { loadingTextClass, mutedTextClass } from '@/constants/uiClasses'
 
 export interface DiagnosticCheckItem {
   id: string
@@ -95,9 +96,9 @@ function statusBadgeClass(status: string): string {
     ok: `${base} bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-400`,
     warning: `${base} bg-warning-50 text-warning-700 dark:bg-warning-500/10 dark:text-warning-400`,
     error: `${base} bg-error-50 text-error-700 dark:bg-error-500/10 dark:text-error-400`,
-    skipped: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`,
+    skipped: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`,
   }
-  return map[status] ?? `${base} bg-gray-100 text-gray-600`
+  return map[status] ?? `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`
 }
 
 function formatCheckedAt(value: string): string {

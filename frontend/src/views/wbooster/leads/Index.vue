@@ -49,35 +49,35 @@
     </div>
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <table class="min-w-full text-sm">
-        <thead class="border-b border-gray-200 dark:border-gray-800 text-gray-500">
+        <thead class="border-b border-gray-200 dark:border-gray-800">
           <tr>
-            <th class="p-4 text-left">Дата</th>
-            <th class="p-4 text-left">Заказчик</th>
-            <th class="p-4 text-left">Проект</th>
-            <th class="p-4 text-left">Телефон</th>
-            <th class="p-4 text-left">Тип</th>
-            <th class="p-4 text-left">Канал</th>
-            <th class="p-4 text-left">Статус</th>
+            <th :class="tableHeadCellClass">Дата</th>
+            <th :class="tableHeadCellClass">Заказчик</th>
+            <th :class="tableHeadCellClass">Проект</th>
+            <th :class="tableHeadCellClass">Телефон</th>
+            <th :class="tableHeadCellClass">Тип</th>
+            <th :class="tableHeadCellClass">Канал</th>
+            <th :class="tableHeadCellClass">Статус</th>
             <th class="p-4"></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="lead in leads" :key="lead.id" class="border-b border-gray-100 dark:border-gray-800">
-            <td class="p-4">{{ formatDate(lead.created_at) }}</td>
-            <td class="p-4">{{ lead.site?.agency_client?.name }}</td>
-            <td class="p-4">{{ lead.site?.name }}</td>
-            <td class="p-4">{{ lead.phone || '—' }}</td>
-            <td class="p-4">
+          <tr v-for="lead in leads" :key="lead.id" :class="tableRowClass">
+            <td :class="tableCellClass">{{ formatDate(lead.created_at) }}</td>
+            <td :class="tableCellClass">{{ lead.site?.agency_client?.name }}</td>
+            <td :class="tableCellClass">{{ lead.site?.name }}</td>
+            <td :class="tableCellClass">{{ lead.phone || '—' }}</td>
+            <td :class="tableCellClass">
               <span :class="channelBadgeClass(lead.channel)">{{ lead.channel_label }}</span>
             </td>
-            <td class="p-4">{{ lead.advertising_channel || '—' }}</td>
-            <td class="p-4">{{ lead.lead_status_label }}</td>
-            <td class="p-4 text-right">
+            <td :class="tableCellClass">{{ lead.advertising_channel || '—' }}</td>
+            <td :class="tableCellClass">{{ lead.lead_status_label }}</td>
+            <td :class="`${tableCellClass} text-right`">
               <router-link :to="`/leads/${lead.id}`" class="text-brand-500">Открыть</router-link>
             </td>
           </tr>
           <tr v-if="!leads.length">
-            <td colspan="8" class="p-8 text-center text-gray-500">Нет лидов по выбранным фильтрам</td>
+            <td colspan="8" :class="`${emptyStateClass} text-center`">Нет лидов по выбранным фильтрам</td>
           </tr>
         </tbody>
       </table>
@@ -93,6 +93,12 @@ import Button from '@/components/ui/Button.vue'
 import FormSelect from '@/components/wbooster/FormSelect.vue'
 import { formLabelClass, formSelectClass } from '@/constants/formClasses'
 import { btnPrimaryClass } from '@/constants/buttonClasses'
+import {
+  emptyStateClass,
+  tableCellClass,
+  tableHeadCellClass,
+  tableRowClass,
+} from '@/constants/uiClasses'
 import { api, type Paginated } from '@/api/client'
 
 interface Lead {
@@ -146,9 +152,9 @@ function channelBadgeClass(channel: string): string {
     form: `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`,
     call: `${base} bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400`,
     email: `${base} bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400`,
-    manual: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`,
+    manual: `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`,
   }
-  return map[channel] ?? `${base} bg-gray-100 text-gray-600`
+  return map[channel] ?? `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`
 }
 
 function queryString(): string {

@@ -17,7 +17,7 @@ class DocumentationService
 
     public function __construct(?string $docsRoot = null)
     {
-        $this->docsRoot = $docsRoot ?? base_path('docs');
+        $this->docsRoot = $docsRoot ?? config('documentation.root', base_path('docs'));
     }
 
     /**

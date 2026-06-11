@@ -88,7 +88,7 @@ async function consumeImpersonationToken(to: RouteLocationNormalized): Promise<b
 
 router.beforeEach(async (to) => {
   if (to.meta.title) {
-    document.title = `${to.meta.title} | WBooster`
+    document.title = `${to.meta.title} | Lead CRM`
   }
 
   if (to.query.impersonate) {

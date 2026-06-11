@@ -142,7 +142,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.meta.title) {
-    document.title = `${to.meta.title} | WBooster`
+    document.title = `${to.meta.title} | Lead CRM`
   }
 
   let authenticated = false

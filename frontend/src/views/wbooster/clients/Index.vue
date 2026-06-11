@@ -6,42 +6,35 @@
     </div>
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <table class="min-w-full">
-        <thead class="border-b border-gray-200 dark:border-gray-800">
-          <tr class="text-left text-sm text-gray-500">
-            <th class="p-4">Название</th>
-            <th class="p-4">ИНН</th>
-            <th class="p-4">Проектов</th>
-            <th class="p-4">Статус</th>
-            <th class="p-4 text-right">Действия</th>
+        <thead :class="tableHeadRowClass">
+          <tr>
+            <th :class="tableHeadCellClass">Название</th>
+            <th :class="tableHeadCellClass">ИНН</th>
+            <th :class="tableHeadCellClass">Проектов</th>
+            <th :class="tableHeadCellClass">Статус</th>
+            <th :class="tableHeadCellRightClass">Действия</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="client in clients"
-            :key="client.id"
-            class="border-b border-gray-100 dark:border-gray-800"
-          >
-            <td class="p-4 font-medium">
+          <tr v-for="client in clients" :key="client.id" :class="tableRowClass">
+            <td :class="tableCellMediumClass">
               <router-link
                 :to="`/clients/${client.id}`"
-                class="text-gray-800 hover:text-brand-500 dark:text-white"
+                class="text-gray-800 hover:text-brand-500 dark:text-white/90"
               >
                 {{ client.name }}
               </router-link>
             </td>
-            <td class="p-4">{{ client.inn || '—' }}</td>
-            <td class="p-4">{{ client.sites_count ?? 0 }}</td>
-            <td class="p-4">
+            <td :class="tableCellClass">{{ client.inn || '—' }}</td>
+            <td :class="tableCellClass">{{ client.sites_count ?? 0 }}</td>
+            <td :class="tableCellClass">
               <span :class="clientStatusBadgeClass(client.status)">{{ statusLabel(client.status) }}</span>
             </td>
-            <td class="p-4 text-right space-x-3">
+            <td :class="`${tableCellClass} text-right space-x-3`">
               <router-link :to="`/clients/${client.id}`" class="text-sm text-brand-500 hover:underline">
                 Открыть
               </router-link>
-              <router-link
-                :to="`/clients/${client.id}/edit`"
-                class="text-sm text-gray-500 hover:text-brand-500"
-              >
+              <router-link :to="`/clients/${client.id}/edit`" :class="linkMutedClass">
                 Изменить
               </router-link>
               <button type="button" class="text-sm text-error-500" @click="remove(client.id)">
@@ -59,6 +52,17 @@
 import { onMounted, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { btnPrimaryClass } from '@/constants/buttonClasses'
+import {
+  linkMutedClass,
+  statusActiveBadgeClass,
+  statusArchivedBadgeClass,
+  tableCellClass,
+  tableCellMediumClass,
+  tableHeadCellClass,
+  tableHeadCellRightClass,
+  tableHeadRowClass,
+  tableRowClass,
+} from '@/constants/uiClasses'
 import { api, type Paginated } from '@/api/client'
 
 interface Client {
@@ -81,10 +85,7 @@ function statusLabel(status: string): string {
 }
 
 function clientStatusBadgeClass(status: string): string {
-  const base = 'rounded-full px-2 py-0.5 text-xs'
-  return status === 'active'
-    ? `${base} bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400`
-    : `${base} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400`
+  return status === 'active' ? statusActiveBadgeClass : statusArchivedBadgeClass
 }
 
 async function remove(id: string) {

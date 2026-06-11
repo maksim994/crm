@@ -29,11 +29,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('WBooster')
+            ->brandName('Lead CRM')
             ->brandLogo(fn () => new HtmlString(
                 '<span class="flex items-center gap-2 font-bold tracking-tight">'
-                .'<span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#5D87FF] text-sm text-white">W</span>'
-                .'<span>WBooster</span></span>'
+                .'<span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#5D87FF] text-sm text-white">L</span>'
+                .'<span>Lead CRM</span></span>'
             ))
             ->colors([
                 'primary' => Color::hex('#5D87FF'),

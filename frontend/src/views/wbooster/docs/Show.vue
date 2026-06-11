@@ -118,7 +118,7 @@ async function loadDocument(slug: string) {
     title.value = res.data.title
     description.value = res.data.description
     html.value = await marked.parse(res.data.content)
-    document.title = `${res.data.title} | WBooster`
+    document.title = `${res.data.title} | Lead CRM`
   } catch {
     error.value = 'Документ не найден.'
     title.value = ''

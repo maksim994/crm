@@ -2,7 +2,7 @@
   <admin-layout>
     <PageBreadcrumb :page-title="site?.name ?? 'Проект'" />
 
-    <div v-if="loading" class="text-sm text-gray-500">Загрузка…</div>
+    <div v-if="loading" :class="loadingTextClass">Загрузка…</div>
 
     <template v-else-if="site">
       <div class="mb-4 flex flex-wrap gap-2">
@@ -15,8 +15,8 @@
         <div
           class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]"
         >
-          <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Токен интеграции</h3>
-          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          <h3 :class="cardTitleSmClass">Токен интеграции</h3>
+          <p :class="`${mutedTextClass} mb-4`">
             Используется в формах, webhook и скрипте wbooster.js.
           </p>
 
@@ -37,11 +37,11 @@
         </div>
 
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
-          <h3 class="mb-2 font-semibold text-gray-800 dark:text-white">Скрипт подстановки почт</h3>
-          <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          <h3 :class="cardTitleSmClass">Скрипт подстановки почт</h3>
+          <p :class="`${mutedTextClass} mb-4`">
             Вставьте на site.ru. Скрипт сам определяет источник визита и подставляет почту из настроек проекта.
           </p>
-          <pre class="mb-3 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-800">{{ embedScriptTagDisplay }}</pre>
+          <pre class="mb-3 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap text-gray-800 dark:bg-gray-800 dark:text-white/90">{{ embedScriptTagDisplay }}</pre>
           <Button v-if="token" type="button" size="sm" @click="copyEmbedScript">Скопировать скрипт с токеном</Button>
           <p v-if="embedCopyMessage" class="mt-2 text-sm text-success-600">{{ embedCopyMessage }}</p>
         </div>
@@ -51,43 +51,43 @@
         <div
           class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]"
         >
-          <h3 class="mb-4 font-semibold text-gray-800 dark:text-white">Проект</h3>
+          <h3 :class="cardTitleClass">Проект</h3>
           <dl class="space-y-3 text-sm">
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Заказчик</dt>
-              <dd class="text-right text-gray-800 dark:text-white">{{ site.agency_client?.name ?? '—' }}</dd>
+              <dt :class="dlLabelClass">Заказчик</dt>
+              <dd :class="dlValueRightClass">{{ site.agency_client?.name ?? '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Статус</dt>
-              <dd>{{ statusLabel(site.status) }}</dd>
+              <dt :class="dlLabelClass">Статус</dt>
+              <dd :class="dlValueClass">{{ statusLabel(site.status) }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Домены</dt>
-              <dd class="text-right">{{ (site.domains || []).join(', ') || '—' }}</dd>
+              <dt :class="dlLabelClass">Домены</dt>
+              <dd :class="dlValueRightClass">{{ (site.domains || []).join(', ') || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Метрика</dt>
-              <dd>{{ site.metrika_counter_id || '—' }}</dd>
+              <dt :class="dlLabelClass">Метрика</dt>
+              <dd :class="dlValueClass">{{ site.metrika_counter_id || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Timezone</dt>
-              <dd>{{ site.timezone }}</dd>
+              <dt :class="dlLabelClass">Timezone</dt>
+              <dd :class="dlValueClass">{{ site.timezone }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Почта (реклама)</dt>
-              <dd class="text-right">{{ site.email_inbound_address || '—' }}</dd>
+              <dt :class="dlLabelClass">Почта (реклама)</dt>
+              <dd :class="dlValueRightClass">{{ site.email_inbound_address || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Почта (SEO / поиск)</dt>
-              <dd class="text-right">{{ site.email_inbound_seo || '—' }}</dd>
+              <dt :class="dlLabelClass">Почта (SEO / поиск)</dt>
+              <dd :class="dlValueRightClass">{{ site.email_inbound_seo || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Почта (прямые заходы)</dt>
-              <dd class="text-right">{{ site.email_inbound_other || '—' }}</dd>
+              <dt :class="dlLabelClass">Почта (прямые заходы)</dt>
+              <dd :class="dlValueRightClass">{{ site.email_inbound_other || '—' }}</dd>
             </div>
             <div class="flex justify-between gap-4">
-              <dt class="text-gray-500">Лидов</dt>
-              <dd>{{ site.leads_count ?? 0 }}</dd>
+              <dt :class="dlLabelClass">Лидов</dt>
+              <dd :class="dlValueClass">{{ site.leads_count ?? 0 }}</dd>
             </div>
           </dl>
         </div>
@@ -134,6 +134,15 @@ import DiagnosticsPanel, {
 } from '@/components/wbooster/DiagnosticsPanel.vue'
 import SiteIntegrationGuide from '@/components/wbooster/SiteIntegrationGuide.vue'
 import { btnOutlineClass, btnPrimaryClass } from '@/constants/buttonClasses'
+import {
+  cardTitleClass,
+  cardTitleSmClass,
+  dlLabelClass,
+  dlValueClass,
+  dlValueRightClass,
+  loadingTextClass,
+  mutedTextClass,
+} from '@/constants/uiClasses'
 import { api } from '@/api/client'
 
 interface SiteDetail {

@@ -1,7 +1,7 @@
 {
     "name": "wbooster/crm",
     "type": "project",
-    "description": "WBooster CRM \u2014 lead ingestion and analytics platform",
+    "description": "Lead CRM \u2014 lead ingestion and analytics platform",
     "license": "proprietary",
     "require": {
         "php": "^8.2",

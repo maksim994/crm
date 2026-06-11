@@ -1,0 +1,1 @@
+const c=(s,a)=>{const g=s.__vccOpts||s;for(const[l,t]of a)g[l]=t;return g},o="/admin/",n=`${o}images/logo/logo.svg`,r=`${o}images/logo/logo-dark.svg`,e=`${o}images/logo/logo-icon.svg`;export{c as _,r as a,e as b,n as l};

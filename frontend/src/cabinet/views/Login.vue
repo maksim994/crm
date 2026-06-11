@@ -4,8 +4,8 @@
       <div class="relative flex min-h-screen w-full flex-col justify-center dark:bg-gray-900">
         <div class="mx-auto w-full max-w-md px-4 py-10">
           <div class="mb-8 text-center">
-            <img src="/images/logo/logo.svg" alt="WBooster" class="mx-auto h-10 dark:hidden" />
-            <img src="/images/logo/logo-dark.svg" alt="WBooster" class="mx-auto hidden h-10 dark:block" />
+            <img :src="logoLightUrl" alt="Lead CRM" class="mx-auto h-8 w-auto dark:hidden" />
+            <img :src="logoDarkUrl" alt="Lead CRM" class="mx-auto hidden h-8 w-auto dark:block" />
             <h1 class="mt-6 mb-2 text-title-sm font-semibold text-gray-800 dark:text-white/90">Личный кабинет</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400">Просмотр лидов по вашим проектам</p>
           </div>
@@ -36,6 +36,7 @@ import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import { formInputClass, formLabelClass } from '@/constants/formClasses'
 import { api, ApiError } from '@cabinet/api/client'
+import { logoDarkUrl, logoLightUrl } from '@/constants/branding'
 
 const router = useRouter()
 const route = useRoute()

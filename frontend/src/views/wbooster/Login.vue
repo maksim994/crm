@@ -7,16 +7,16 @@
         <div class="flex flex-col flex-1 w-full lg:w-1/2">
           <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto px-4 py-10">
             <div class="mb-8 text-center">
-              <img src="/images/logo/logo.svg" alt="WBooster" class="mx-auto h-10 dark:hidden" />
+              <img :src="logoLightUrl" alt="Lead CRM" class="mx-auto h-8 w-auto dark:hidden" />
               <img
-                src="/images/logo/logo-dark.svg"
-                alt="WBooster"
-                class="mx-auto h-10 hidden dark:block"
+                :src="logoDarkUrl"
+                alt="Lead CRM"
+                class="mx-auto hidden h-8 w-auto dark:block"
               />
               <h1 class="mt-6 mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90">
                 Вход в админку
               </h1>
-              <p class="text-sm text-gray-500 dark:text-gray-400">WBooster CRM</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Lead CRM</p>
             </div>
 
             <p v-if="error" class="mb-4 text-sm text-error-600">{{ error }}</p>
@@ -79,6 +79,7 @@ import { useRoute, useRouter } from 'vue-router'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
 import Button from '@/components/ui/Button.vue'
 import { api, ApiError } from '@/api/client'
+import { logoDarkUrl, logoLightUrl } from '@/constants/branding'
 
 const router = useRouter()
 const route = useRoute()

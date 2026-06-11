@@ -23,24 +23,24 @@
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
           class="dark:hidden"
-          src="/images/logo/logo.svg"
-          alt="Logo"
-          width="150"
-          height="40"
+          :src="logoLightUrl"
+          alt="Lead CRM"
+          width="152"
+          height="32"
         />
         <img
           v-if="isExpanded || isHovered || isMobileOpen"
           class="hidden dark:block"
-          src="/images/logo/logo-dark.svg"
-          alt="Logo"
-          width="150"
-          height="40"
+          :src="logoDarkUrl"
+          alt="Lead CRM"
+          width="152"
+          height="32"
         />
         <img
           v-else
-          src="/images/logo/logo-icon.svg"
-          alt="Logo"
-          width="32"
+          :src="logoIconUrl"
+          alt="Lead CRM"
+          width="34"
           height="32"
         />
       </router-link>
@@ -234,6 +234,7 @@ import {
 import SidebarWidget from "./SidebarWidget.vue";
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
 import { useSidebar } from "@/composables/useSidebar";
+import { logoDarkUrl, logoIconUrl, logoLightUrl } from "@/constants/branding";
 
 const route = useRoute();
 
